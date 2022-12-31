@@ -1,8 +1,5 @@
-# Svelte-Kit + Vite
+# DrawBridge
 
-This template should help get you started developing with Tauri and Svelte-Kit in Vite.
-
-## Recommended IDE Setup
-
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
-
+This Project will be a open source UCI engine briding software.
+It will imitate a normal uci engine while briding its traffic to a remote host.
+This will allow to use remote engine clusters to be used in traditional software.
