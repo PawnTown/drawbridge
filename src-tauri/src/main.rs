@@ -51,7 +51,7 @@ async fn start_ptcec_driver(args: Vec<String>) -> Result<(), Box<dyn std::error:
         .connect()
         .await?;
     //loop {
-        let request = tonic::Request::new(pub_api::Empty {});
+        let request = tonic::Request::new(pub_api:: {});
         let response = client.get_stream(request).await?;
         let stream = response.into_inner();
         println!("STREAM: {:?}", stream);
