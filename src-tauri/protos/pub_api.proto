@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option go_package = "cec.remote_daemon/src/api/pub_api/pb";
+
+package pub_api;
+
+service Pub {
+
+  rpc StreamEngine (stream StreamEngineRequest) returns (stream StreamEngineReply) {}
+  rpc CreateReadonlyToken (CreateReadonlyTokenRequest) returns (CreateReadonlyTokenReply) {}
+
+}
+
+message StreamEngineRequest {
+  oneof data {
+    StreamEngineInitRequest init=1;
+    bytes stdin=2;
+  };
+}
+
+message StreamEngineInitRequest {
+  string engine=1;
+  string mode=2;
+  string sessionId=3;
+}
+
+message StreamEngineReply {
+  bytes stdout=1;
+}
+
+message CreateReadonlyTokenRequest {
+  string engine=1;
+  string mode=2;
+  string sessionId=3;
+}
+
+message CreateReadonlyTokenReply {
+  string token=1;
+}
