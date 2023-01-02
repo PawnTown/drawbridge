@@ -18,7 +18,11 @@
         "open": true
       },
       "dialog": {
+        "all": false,
         "save": true
+      },
+      "window": {
+        "all": true
       }
     },
     "bundle": {
@@ -62,11 +66,12 @@
     },
     "windows": [
       {
+        "decorations": false,
         "fullscreen": false,
-        "height": 600,
-        "resizable": true,
-        "title": "drawbridge",
-        "width": 800
+        "height": 640,
+        "resizable": false,
+        "title": "DrawBridge",
+        "width": 420
       }
     ]
   }

@@ -1,25 +1,20 @@
 <script>
-  import CreateForm from "$lib/CreateForm.svelte";
+  import AddRemote from "$lib/AddRemote.svelte";
+  import RemoteList from "$lib/RemoteList/RemoteList.svelte";
+  import TitleBar from "$lib/TitleBar.svelte";
+
+  let addRemoteVisible = false;
 </script>
 
-<div class="row">
-  <a href="https://pawn.town" target="_blank">
-    <img src="/pawntown_logo.png" class="logo" />
-  </a>
-</div>
-
-<h1>PawnTown DrawBridge</h1>
+<TitleBar />
 
 <div class="mainwrap">
-  <CreateForm />
+  <RemoteList on:addPressed={() => addRemoteVisible = true} />
 </div>
 
-<style>
-  .logo.vite:hover {
-    filter: drop-shadow(0 0 2em #747bff);
-  }
+{#if addRemoteVisible}
+  <AddRemote />
+{/if}
 
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00);
-  }
+<style>
 </style>
