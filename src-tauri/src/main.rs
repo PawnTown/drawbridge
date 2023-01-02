@@ -11,7 +11,7 @@ fn greet(name: &str) -> String {
 
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::env;
-use std::str;
+use std::str::{self, FromStr};
 use tokio_stream::StreamExt;
 use tokio::sync::mpsc;
 use tokio::io::{stdin, AsyncBufReadExt, BufReader};
@@ -69,14 +69,14 @@ async fn start_bridge(args: Vec<String>) -> Result<(), Box<dyn std::error::Error
 
 // Starts the ptcec bridge driver
 async fn start_ptcec_driver(url: String, engine: String, mode: String, token: String, session_id: String) -> Result<(), Box<dyn std::error::Error>> {
-    let channel = Channel::from_static(url.as_ref()).connect().await?;
-    let mut authHeader = "Basic ".to_owned();
-    authHeader.push_str(&token);
+    let channel = Channel::from_shared(url).unwrap().connect().await?;
+    let mut auth_header = "Basic ".to_owned();
+    auth_header.push_str(&token);
 
     let mut client = PubClient::with_interceptor(channel, |mut req: Request<()>| {
         req.metadata_mut().insert(
             "Authorization",
-            AsciiMetadataValue::from_static(authHeader.as_ref()),
+            AsciiMetadataValue::try_from(&auth_header).unwrap(),
         );
         Ok(req)
     });
