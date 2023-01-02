@@ -9,10 +9,15 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::env;
+use tonic::{IntoStreamingRequest, IntoRequest};
+use cecpub::pub_client::PubClient;
+use cecpub::{ StreamEngineReply, StreamEngineInitRequest, StreamEngineRequest, stream_engine_request };
 
-use pub_api::{ StreamEngine };
-mod pub_api;
+pub mod cecpub {
+    tonic::include_proto!("cecpub");
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -36,8 +41,8 @@ fn start_tauri() {
 // Starts the bridge cli
 async fn start_bridge(args: Vec<String>) {
     let _ = match args[1].as_ref() {
-        "ptcec" => start_ptcec_driver(args).await,
-        "ssh" => start_ssh_driver(args).await,
+        "ptcec" => start_ptcec_driver(args),
+        "ssh" => start_ssh_driver(args),
         _ => {
             println!("Invalid driver name. Please use ptcec or ssh.");
             std::process::exit(1);
@@ -46,20 +51,40 @@ async fn start_bridge(args: Vec<String>) {
 }
 
 // Starts the ptcec bridge driver
+#[tokio::main]
 async fn start_ptcec_driver(args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
-    let channel = tonic::transport::Channel::from_static(args[2].as_ref())
-        .connect()
-        .await?;
-    //loop {
-        let request = tonic::Request::new(pub_api:: {});
-        let response = client.get_stream(request).await?;
-        let stream = response.into_inner();
-        println!("STREAM: {:?}", stream);
-    //}
-    Ok(())
+    let client = PubClient::connect(args[2].as_ref()).await?;
+
+    let mut initRequest = StreamEngineRequest {
+        data: Some(stream_engine_request::Data::Init(StreamEngineInitRequest{
+            engine: args[3],
+            mode: args[4],
+            session_id: genSessionId(),
+        })),
+    };
+
+    let mut response_stream = client
+        .stream_engine(initRequest)
+        .into_streaming_request()
+        .await?
+        .into_inner();
+
+    /*while let Some(response) = response_stream.next().await {
+        println!("RESPONSE={:?}", response);
+    }*/
+
+    return Ok(());
 }
 
 // Starts the ssh bridge driver
+#[tokio::main]
 async fn start_ssh_driver(args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
+}
+
+fn genSessionId() -> String {
+    let now = SystemTime::now();
+    let since_the_epoch = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
+    let in_ms = since_the_epoch.as_millis();
+    format!("drawbridge_{}", in_ms)
 }
