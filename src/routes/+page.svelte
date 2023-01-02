@@ -1,25 +1,17 @@
 <script>
-  import Greet from "$lib/Greet.svelte";
+  import CreateForm from "$lib/CreateForm.svelte";
 </script>
 
-<h1>Welcome to Tauri!</h1>
-
 <div class="row">
-  <a href="https://vitejs.dev" target="_blank">
-    <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-  </a>
-  <a href="https://tauri.app" target="_blank">
-    <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-  </a>
-  <a href="https://kit.svelte.dev" target="_blank">
-    <img src="/svelte.svg" class="logo svelte" alt="Svelte Logo" />
+  <a href="https://pawn.town" target="_blank">
+    <img src="/pawntown_logo.png" class="logo" />
   </a>
 </div>
 
-<p>Click on the Tauri, Vite, and Svelte logos to learn more.</p>
+<h1>PawnTown DrawBridge</h1>
 
-<div class="row">
-  <Greet />
+<div class="mainwrap">
+  <CreateForm />
 </div>
 
 <style>

@@ -3,26 +3,44 @@
     windows_subsystem = "windows"
 )]
 
+use std::fs::File;
+use std::fs;
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: String, token: String) -> bool {
+    let exec_path;
+    match env::current_exe() {
+        Ok(exe_path) => exec_path = exe_path.display().to_string(),
+        Err(_) =>  return false,
+    };
+
+    let file = File::create(output.clone());
+
+    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} ptcec {} {} {} {}", exec_path, url, engine, mode, token).as_bytes()) {
+        return false;
+    }
+
+    fs::set_permissions(output, fs::Permissions::from_mode(500)).unwrap();
+    return true;
 }
 
+use std::io::Write;
+use std::os::unix::prelude::PermissionsExt;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::env;
-use std::str::{self, FromStr};
+use std::str::{self};
 use tokio_stream::StreamExt;
 use tokio::sync::mpsc;
 use tokio::io::{stdin, AsyncBufReadExt, BufReader};
-use cecpub::pub_client::PubClient;
-use cecpub::{ StreamEngineInitRequest, StreamEngineRequest, stream_engine_request };
+use proto::pub_client::PubClient;
+use proto::{ StreamEngineInitRequest, StreamEngineRequest, stream_engine_request };
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::metadata::AsciiMetadataValue;
 use tonic::transport::Channel;
 use tonic::Request;
-pub mod cecpub {
-    tonic::include_proto!("cecpub");
+pub mod proto {
+    tonic::include_proto!("proto");
 }
 
 fn main() {
@@ -42,7 +60,7 @@ fn main() {
 // Starts the UI
 fn start_tauri() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![create_ptcec_unix_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -75,8 +93,8 @@ async fn start_ptcec_driver(url: String, engine: String, mode: String, token: St
 
     let mut client = PubClient::with_interceptor(channel, |mut req: Request<()>| {
         req.metadata_mut().insert(
-            "Authorization",
-            AsciiMetadataValue::try_from(&auth_header).unwrap(),
+            "authorization",
+            AsciiMetadataValue::try_from(auth_header.clone()).unwrap(),
         );
         Ok(req)
     });
@@ -116,7 +134,7 @@ async fn start_ptcec_driver(url: String, engine: String, mode: String, token: St
 
     while let Some(item) = stream.next().await {
         match str::from_utf8(item.unwrap().stdout.as_ref()) {
-            Ok(v) => println!("\treceived: {}", v),
+            Ok(v) => println!("{}", v),
             Err(_) => {/* ignored */},
         };
     }
