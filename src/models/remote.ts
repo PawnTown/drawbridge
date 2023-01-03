@@ -1,5 +1,6 @@
 export interface Remote {
     // universal
+    id: string;
     driver: string;
     label: string;
     url: string;

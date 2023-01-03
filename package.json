@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.2.0",
-    "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#9bd993aa67766596638bbfd91e79a1bf8f632014"
+    "@types/uuid": "^9.0.0",
+    "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#9bd993aa67766596638bbfd91e79a1bf8f632014",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "next",

@@ -2,6 +2,7 @@
   import { GetStore } from '../services/storage';
   import { createEventDispatcher } from 'svelte';
   import { fly } from 'svelte/transition';
+  import { v4 as uuidv4 } from 'uuid';
 
   import DriverSwitch from './DriverSwitch.svelte';
   
@@ -24,6 +25,7 @@
   const savePTCECRemote = async () => {
     const remotes = await store.get('remotes');
     const newRemotes = [...(remotes ?? []), {
+      id: uuidv4(),
       driver: "PTCEC",
       label,
       url,
@@ -42,6 +44,7 @@
   const saveSSHRemote = async () => {
     const remotes = await store.get('remotes');
     const newRemotes = [...(remotes ?? []), {
+      id: uuidv4(),
       driver: "SSH",
       label: sshLabel,
       url: sshUrl,

@@ -4,8 +4,13 @@
   import { fly, fade } from 'svelte/transition';
   import { createEventDispatcher } from 'svelte';
   import type { Remote } from '../models/remote';
+  import { GetStore } from '../services/storage';
+
+  const store = GetStore();
 
   export let remote: Remote;
+
+  let deleteUIVisible = false;
 
   const dispatch = createEventDispatcher();
 
@@ -13,6 +18,11 @@
       dispatch("close");
   };
 
+  const onDelete = async () => {
+    let newRemotes : Remote[] | null = await store.get('remotes');
+    await store.set("remotes", (newRemotes ?? []).filter((r: Remote) => r.id !== remote.id));
+    dispatch("delete");
+  };
 
   async function saveUnixScript() {
     const output = await save({
@@ -42,8 +52,28 @@
   on:click={onClose}
 ></div>
 
+{#if deleteUIVisible}
 <div
-  class="dialog"
+  class="dialog delete"
+  out:fly="{{ y: 250, duration: 250, delay: 0 }}"
+  in:fly="{{ y: 250, duration: 250 }}"
+> 
+  <div class="confirm-text">
+    <h2>Are you sure you want to delete?</h2>
+    <p>If you confirm this action, the remote will be deleted permanently.</p>
+  </div>
+  <div class="confirm-actions">
+    <button class="cancel-delete" on:click={() => deleteUIVisible = false}>
+      Cancel
+    </button>
+    <button class="confirm-delete" on:click={onDelete}>
+      Yes, Delete
+    </button>
+  </div>
+</div>
+{:else}
+<div
+  class="dialog details"
   out:fly="{{ y: 250, duration: 250, delay: 0 }}"
   in:fly="{{ y: 250, duration: 250 }}"
 >
@@ -91,10 +121,11 @@
           Edit Details
         </button>
       </div>
-      <button class="remove">Remove</button>
+      <button class="delete" on:click={() => deleteUIVisible = true}>Delete</button>
     </div>
   </div>
 </div>
+{/if}
 
 <style>
   .backdrop {
@@ -113,8 +144,15 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 390px;
     padding: 12px;
+  }
+
+  .dialog.details {
+    height: 390px;
+  }
+
+  .dialog.delete{
+    height: 170px;
   }
 
   .cancel {
@@ -195,7 +233,7 @@
     background-color: #0175ff;
   }
 
-  .inner-wrap .actions button.remove {
+  .inner-wrap .actions button.delete {
     background-color: #c33737;
   }
 
@@ -216,5 +254,44 @@
   .inner-wrap .actions button .icon.edit {
     background-image: url('/edit.svg');
     filter: invert(1);
+  }
+
+  .confirm-text {
+    text-align: left;
+    padding: 12px 7px;
+  }
+
+  .confirm-text h2 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .confirm-text p {
+    margin: 7px 0;
+    font-size: 16px;
+  }
+
+  .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 7px;
+  }
+
+  .confirm-actions button {
+    background-color: #2b2d2e;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    margin: 0 0 0 9px;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .confirm-actions button.confirm-delete {
+    background-color: #c33737;
   }
 </style>

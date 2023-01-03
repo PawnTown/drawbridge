@@ -37,6 +37,7 @@
   <RemoteDetails
     remote={visibleItem}
     on:close={() => visibleItem = null}
+    on:delete={() => {visibleItem = null; reloadRemotes();}}
   />
 {/if}
 
