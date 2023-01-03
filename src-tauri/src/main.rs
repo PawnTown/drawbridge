@@ -81,8 +81,7 @@ fn main() {
 fn start_tauri() {
     tauri::Builder::default()
         .plugin(PluginBuilder::default().build())
-        .invoke_handler(tauri::generate_handler![create_ptcec_unix_script])
-        .invoke_handler(tauri::generate_handler![create_ssh_unix_script])
+        .invoke_handler(tauri::generate_handler![create_ptcec_unix_script, create_ssh_unix_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
