@@ -1,62 +1,64 @@
-<script>
+<script lang="ts">
   import { GetStore } from '../services/storage';
   import { createEventDispatcher, onMount } from 'svelte';
   import { fly } from 'svelte/transition';
   import { v4 as uuidv4 } from 'uuid';
 
   import DriverSwitch from './DriverSwitch.svelte';
+  import type { Remote } from '../models/remote';
+  
+  export let remote: Remote = {
+    driver: "PTCEC",
+    label: "",
+    url: "",
+    engine: "",
+    runCommand: "",
+    mode: "",
+    token: "",
+  };
   
   const store = GetStore();
-
-  let driver = "PTCEC";
-
   let animateTabs = false;
-
   const dispatch = createEventDispatcher();
 
   const onClose = () => {
-      dispatch("close");
+    animateTabs = false;
+    dispatch("close");
   };
-
-  let label = "";
-  let url = "";
-  let engine = "";
-  let mode = "";
-  let token = "";
 
   onMount(() => {
     animateTabs = true;
   });
 
   const savePTCECRemote = async () => {
-    const remotes = await store.get('remotes');
-    const newRemotes = [...(remotes ?? []), {
-      id: uuidv4(),
+    const remotes: Remote[] | null = await store.get('remotes');
+    const filteredRemotes = (remotes ?? []).filter((r: Remote) => remote.id && r.id !== remote.id);
+    const newRemotes = [...filteredRemotes, {
+      id: remote.id ?? uuidv4(),
       driver: "PTCEC",
-      label,
-      url,
-      engine,
-      mode,
-      token,
+      label: remote.label,
+      url: remote.url,
+      engine: remote.engine,
+      mode: remote.mode,
+      token: remote.token,
     }];
     await store.set("remotes", newRemotes);
+    animateTabs = false;
     dispatch("success");
   };
 
-  let sshLabel = "";
-  let sshUrl = "";
-  let sshRunCommand = "";
-
   const saveSSHRemote = async () => {
-    const remotes = await store.get('remotes');
-    const newRemotes = [...(remotes ?? []), {
-      id: uuidv4(),
+    const remotes: Remote[] | null = await store.get('remotes');
+    const filteredRemotes = (remotes ?? []).filter((r: Remote) => remote.id && r.id !== remote.id);
+    const newRemotes = [...filteredRemotes, {
+      id: remote.id ?? uuidv4(),
       driver: "SSH",
-      label: sshLabel,
-      url: sshUrl,
-      runCommand: sshRunCommand
+      label: remote.label,
+      url: remote.url,
+      runCommand: remote.runCommand,
     }];
     await store.set("remotes", newRemotes);
+    animateTabs = false;
     dispatch("success");
   };
 </script>
@@ -69,10 +71,10 @@
 >
   <button class="cancel" on:click={onClose}></button>
   <div class="switch-wrap">
-    <DriverSwitch bind:value={driver} />
+    <DriverSwitch bind:value={remote.driver} />
   </div>
 
-  {#if driver === "PTCEC"}
+  {#if remote.driver === "PTCEC"}
     <div
       class="content"
       out:fly="{{ x: -250, duration: animateTabs ? 250 : 0, delay: 0 }}"
@@ -80,29 +82,29 @@
     >
       <div class="input-wrap prefix-icon label">
         <span>Label</span>
-        <input placeholder="My Awesome Cluster" bind:value={label} />
+        <input placeholder="My Awesome Cluster" bind:value={remote.label} />
       </div>
       <div class="input-wrap prefix-icon url">
         <span>Cluster URL</span>
-        <input placeholder="https://cec[...].pawn.town:50051" bind:value={url} />
+        <input placeholder="https://cec[...].pawn.town:50051" bind:value={remote.url} />
       </div>
       <div class="input-wrap prefix-icon engine">
         <span>Engine</span>
-        <input placeholder="stockfish" bind:value={engine} />
+        <input placeholder="stockfish" bind:value={remote.engine} />
       </div>
       <div class="input-wrap prefix-icon mode">
         <span>Mode</span>
-        <input placeholder="cluster" bind:value={mode} />
+        <input placeholder="cluster" bind:value={remote.mode} />
       </div>
       <div class="input-wrap prefix-icon key">
         <span>Token</span>
-        <input placeholder="ABC123" bind:value={token} />
+        <input placeholder="ABC123" bind:value={remote.token} />
       </div>
-      <button class="submit" on:click={savePTCECRemote}>Add Remote</button>
+      <button class="submit" on:click={savePTCECRemote}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
     </div>
   {/if}
 
-  {#if driver === "SSH"}
+  {#if remote.driver === "SSH"}
     <div
       class="content"
       out:fly="{{ x: 250, duration: animateTabs ? 250 : 0, delay: 0 }}"
@@ -110,18 +112,18 @@
     >
       <div class="input-wrap prefix-icon label">
         <span>Label</span>
-        <input placeholder="My Awesome Cluster" bind:value={sshLabel} />
+        <input placeholder="My Awesome Cluster" bind:value={remote.label} />
       </div>
       <div class="input-wrap prefix-icon url">
         <span>Cluster URL</span>
-        <input placeholder="https://yourhost.com:21" bind:value={sshUrl} />
+        <input placeholder="https://yourhost.com:21" bind:value={remote.url} />
       </div>
       <div class="input-wrap prefix-icon command">
         <span>Run Command</span>
-        <input placeholder="mpi stockfish" bind:value={sshRunCommand} />
+        <input placeholder="mpi stockfish" bind:value={remote.runCommand} />
       </div>
       
-      <button class="submit" on:click={saveSSHRemote}>Add Remote</button>
+      <button class="submit" on:click={saveSSHRemote}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
     </div>
   {/if}
 </div>

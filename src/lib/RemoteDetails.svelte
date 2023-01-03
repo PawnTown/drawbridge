@@ -14,6 +14,10 @@
 
   const dispatch = createEventDispatcher();
 
+  const onEdit = () => {
+      dispatch("edit");
+  };
+
   const onClose = () => {
       dispatch("close");
   };
@@ -127,7 +131,7 @@
           <div class="icon magic"></div>
           Create Shortcut
         </button>
-        <button>
+        <button on:click={onEdit}>
           <div class="icon edit"></div>
           Edit Details
         </button>

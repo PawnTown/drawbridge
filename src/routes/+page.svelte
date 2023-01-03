@@ -9,7 +9,8 @@
 
   const store = GetStore();
   let remotes: Remote[] = [];
-  let visibleItem: Remote | null = null;
+  let visibleDetailsItem: Remote | null = null;
+  let remoteToEdit: Remote | null = null;
 
   onMount(() => {
 		reloadRemotes();
@@ -29,15 +30,16 @@
   <RemoteList
     remotes={remotes}
     on:addPressed={() => addRemoteVisible = true}
-    on:itemPressed={(item) => visibleItem = item.detail.remote}
+    on:itemPressed={(item) => visibleDetailsItem = item.detail.remote}
   />
 </div>
 
-{#if visibleItem}
+{#if visibleDetailsItem}
   <RemoteDetails
-    remote={visibleItem}
-    on:close={() => visibleItem = null}
-    on:delete={() => {visibleItem = null; reloadRemotes();}}
+    remote={visibleDetailsItem}
+    on:close={() => visibleDetailsItem = null}
+    on:edit={() => {remoteToEdit = visibleDetailsItem; visibleDetailsItem = null;}}
+    on:delete={() => {visibleDetailsItem = null; reloadRemotes();}}
   />
 {/if}
 
@@ -45,6 +47,14 @@
   <AddRemote
     on:close={() => addRemoteVisible = false}
     on:success={() => { addRemoteVisible = false; reloadRemotes(); }}
+  />
+{/if}
+
+{#if remoteToEdit}
+  <AddRemote
+    remote={remoteToEdit}
+    on:close={() => remoteToEdit = null}
+    on:success={() => { remoteToEdit = null; reloadRemotes(); }}
   />
 {/if}
 
