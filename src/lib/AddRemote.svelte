@@ -1,5 +1,5 @@
 <script>
-    import { GetStore } from '../services/storage';
+  import { GetStore } from '../services/storage';
   import { createEventDispatcher } from 'svelte';
   import { fly } from 'svelte/transition';
 
@@ -50,27 +50,6 @@
     await store.set("remotes", newRemotes);
     dispatch("success");
   };
-
-  
-
-  // import { save } from '@tauri-apps/api/dialog';
-  // import { invoke } from "@tauri-apps/api/tauri";
-  // async function saveUnixScript() {
-  //   const output = await save({
-  //     filters: [{
-  //       name: 'Image',
-  //       extensions: ["", ".sh"]
-  //     }]
-  //   });
-
-  //   const success = await invoke("create_ptcec_unix_script", {
-  //     output,
-  //     url,
-  //     engine,
-  //     mode,
-  //     token,
-  //   });
-  // }
 </script>
 
 

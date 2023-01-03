@@ -10,6 +10,10 @@
     const onAdd = () => {
         dispatch("addPressed");
     };
+
+    const onItemPress = (item: Remote) => {
+        dispatch("itemPressed", { remote: item });
+    };
 </script>
 
 <div>
@@ -25,7 +29,7 @@
     </div>
     <div class="items">
       {#each remotes as remote}
-        <RemoteListRow remote={remote} />
+        <RemoteListRow remote={remote} on:click={() => onItemPress(remote)} />
       {/each}
     </div>
   </div>

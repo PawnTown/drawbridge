@@ -5,9 +5,11 @@
   import type { Remote } from "../models/remote";
   import { onMount } from "svelte";
   import { GetStore } from "../services/storage";
+    import RemoteDetails from "$lib/RemoteDetails.svelte";
 
   const store = GetStore();
   let remotes: Remote[] = [];
+  let visibleItem: Remote | null = null;
 
   onMount(() => {
 		reloadRemotes();
@@ -24,8 +26,19 @@
 <TitleBar />
 
 <div class="mainwrap">
-  <RemoteList remotes={remotes} on:addPressed={() => addRemoteVisible = true} />
+  <RemoteList
+    remotes={remotes}
+    on:addPressed={() => addRemoteVisible = true}
+    on:itemPressed={(item) => visibleItem = item.detail.remote}
+  />
 </div>
+
+{#if visibleItem}
+  <RemoteDetails
+    remote={visibleItem}
+    on:close={() => visibleItem = null}
+  />
+{/if}
 
 {#if addRemoteVisible}
   <AddRemote

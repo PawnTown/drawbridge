@@ -1,23 +1,34 @@
 <script lang="ts">
   import type { Remote } from "../../models/remote";
+  import { createEventDispatcher } from "svelte";
+
+  const dispatch = createEventDispatcher();
+
+  const onClick = () => dispatch("click");
+
   export let remote: Remote;
 </script>
 
-<div class="row">
+<button on:click={onClick} class="row">
   <div class="color"></div>
   <div class="title">{ remote.label }</div>
-</div>
+</button>
 
 <style scoped>
 .row {
+  display: block;
+  width: 100%;
   position: relative;
   height: 32px;
-  padding: 7px 12px;
+  padding: 24px 12px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
   border-radius: 12px;
   cursor: pointer;
+  border: none;
+  background: transparent;
+  outline: none;
 }
 
 .row:hover {
