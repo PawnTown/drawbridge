@@ -36,6 +36,12 @@
 </div>
 
 <style scoped>
+
+  
+.section {
+  width: 100%;
+}
+
 .section .head {
   display: flex;
   justify-content: flex-start;
@@ -66,7 +72,12 @@
 }
 
 .items {
-  padding: 0 14px;
+  padding: 0 24px 0 14px;
+  max-height: 520px;
+  overflow-y: scroll;
+  overflow-x: none;
+  background: transparent;
+  width: calc(100% - 14px);
 }
 
 .add-button {

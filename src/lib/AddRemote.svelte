@@ -32,7 +32,7 @@
 
   const savePTCECRemote = async () => {
     const remotes: Remote[] | null = await store.get('remotes');
-    const filteredRemotes = (remotes ?? []).filter((r: Remote) => remote.id && r.id !== remote.id);
+    const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
     const newRemotes = [...filteredRemotes, {
       id: remote.id ?? uuidv4(),
       driver: "PTCEC",
@@ -49,7 +49,7 @@
 
   const saveSSHRemote = async () => {
     const remotes: Remote[] | null = await store.get('remotes');
-    const filteredRemotes = (remotes ?? []).filter((r: Remote) => remote.id && r.id !== remote.id);
+    const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
     const newRemotes = [...filteredRemotes, {
       id: remote.id ?? uuidv4(),
       driver: "SSH",
