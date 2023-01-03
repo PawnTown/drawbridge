@@ -244,12 +244,36 @@
     align-items: center;
   }
 
+  .inner-wrap .actions button:hover {
+    background-color: #383b3d;
+  }
+
+  .inner-wrap .actions button:active {
+    background-color: #212324;
+  }
+
   .inner-wrap .actions button.shortcut {
     background-color: #0175ff;
   }
 
+  .inner-wrap .actions button.shortcut:hover {
+    background-color: #1d82ff;
+  }
+
+  .inner-wrap .actions button.shortcut:active {
+    background-color: #1065cb;
+  }
+
   .inner-wrap .actions button.delete {
     background-color: #c33737;
+  }
+
+  .inner-wrap .actions button.delete:hover {
+    background-color: #e94c4c;
+  }
+
+  .inner-wrap .actions button.delete:active {
+    background-color: #9f2121;
   }
 
   .inner-wrap .actions button .icon {
@@ -306,7 +330,23 @@
     align-items: center;
   }
 
+  .confirm-actions button:hover {
+    background-color: #383b3d;
+  }
+
+  .confirm-actions button:active {
+    background-color: #212324;
+  }
+
   .confirm-actions button.confirm-delete {
     background-color: #c33737;
+  }
+
+  .confirm-actions button.confirm-delete:hover {
+    background-color: #e94c4c;
+  }
+
+  .confirm-actions button.confirm-delete:active {
+    background-color: #9f2121;
   }
 </style>

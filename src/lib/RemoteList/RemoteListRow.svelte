@@ -35,6 +35,10 @@
   background-color: #2e2e33;
 }
 
+.row:active {
+  background-color: #2a2a2f;
+}
+
 .row:hover::after {
   content: "";
   background-image: url(/chevron_right.svg);

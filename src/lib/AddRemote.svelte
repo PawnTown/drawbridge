@@ -256,4 +256,12 @@
     font-size: 12px;
     cursor: pointer;
   }
+
+  button.submit:hover {
+    background-color: #1d82ff;
+  }
+
+  button.submit:active {
+    background-color: #1065cb;
+  }
 </style>

@@ -77,6 +77,14 @@
   border-radius: 4px;
 }
 
+.add-button:hover {
+  background-color: #3a3a3e;
+}
+
+.add-button:active {
+  background-color: #2a2a2f;
+}
+
 .add-button .add-icon {
   height: 16px;
   width: 16px;
