@@ -586,6 +586,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tauri-plugin-store",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -2828,6 +2829,18 @@ dependencies = [
  "syn",
  "tauri-codegen",
  "tauri-utils",
+]
+
+[[package]]
+name = "tauri-plugin-store"
+version = "0.0.0"
+source = "git+https://github.com/tauri-apps/tauri-plugin-store?rev=9bd993aa67766596638bbfd91e79a1bf8f632014#9bd993aa67766596638bbfd91e79a1bf8f632014"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "thiserror",
 ]
 
 [[package]]

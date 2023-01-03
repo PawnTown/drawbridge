@@ -1,10 +1,11 @@
 <script lang="ts">
-
+  import type { Remote } from "../../models/remote";
+  export let remote: Remote;
 </script>
 
 <div class="row">
   <div class="color"></div>
-  <div class="title">Some Title</div>
+  <div class="title">{ remote.label }</div>
 </div>
 
 <style scoped>

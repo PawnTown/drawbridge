@@ -1,8 +1,11 @@
 <script lang="ts">
+    import type { Remote } from "../../models/remote";
     import { createEventDispatcher } from "svelte";
     import RemoteListRow from "./RemoteListRow.svelte";
 
     const dispatch = createEventDispatcher();
+
+    export let remotes: Remote[] = [];
 
     const onAdd = () => {
         dispatch("addPressed");
@@ -21,9 +24,9 @@
       </div>
     </div>
     <div class="items">
-      <RemoteListRow />
-      <RemoteListRow />
-      <RemoteListRow />
+      {#each remotes as remote}
+        <RemoteListRow remote={remote} />
+      {/each}
     </div>
   </div>
 </div>

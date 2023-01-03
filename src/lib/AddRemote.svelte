@@ -1,32 +1,76 @@
 <script>
+    import { GetStore } from '../services/storage';
+  import { createEventDispatcher } from 'svelte';
   import { fly } from 'svelte/transition';
-  import { save } from '@tauri-apps/api/dialog';
-  import { invoke } from "@tauri-apps/api/tauri";
+
   import DriverSwitch from './DriverSwitch.svelte';
+  
+  const store = GetStore();
 
-  let driver = "";
+  let driver = "PTCEC";
 
+  const dispatch = createEventDispatcher();
+
+  const onClose = () => {
+      dispatch("close");
+  };
+
+  let label = "";
   let url = "";
   let engine = "";
   let mode = "";
   let token = "";
 
-  async function saveUnixScript() {
-    const output = await save({
-      filters: [{
-        name: 'Image',
-        extensions: ["", ".sh"]
-      }]
-    });
-
-    const success = await invoke("create_ptcec_unix_script", {
-      output,
+  const savePTCECRemote = async () => {
+    const remotes = await store.get('remotes');
+    const newRemotes = [...(remotes ?? []), {
+      driver: "PTCEC",
+      label,
       url,
       engine,
       mode,
       token,
-    });
-  }
+    }];
+    await store.set("remotes", newRemotes);
+    dispatch("success");
+  };
+
+  let sshLabel = "";
+  let sshUrl = "";
+  let sshRunCommand = "";
+
+  const saveSSHRemote = async () => {
+    const remotes = await store.get('remotes');
+    const newRemotes = [...(remotes ?? []), {
+      driver: "SSH",
+      label: sshLabel,
+      url: sshUrl,
+      runCommand: sshRunCommand
+    }];
+    await store.set("remotes", newRemotes);
+    dispatch("success");
+  };
+
+  
+
+  // import { save } from '@tauri-apps/api/dialog';
+  // import { invoke } from "@tauri-apps/api/tauri";
+  // async function saveUnixScript() {
+  //   const output = await save({
+  //     filters: [{
+  //       name: 'Image',
+  //       extensions: ["", ".sh"]
+  //     }]
+  //   });
+
+  //   const success = await invoke("create_ptcec_unix_script", {
+  //     output,
+  //     url,
+  //     engine,
+  //     mode,
+  //     token,
+  //   });
+  // }
 </script>
 
 
@@ -35,16 +79,63 @@
   out:fly="{{ y: 250, duration: 250, delay: 0 }}"
   in:fly="{{ y: 250, duration: 250 }}"
 >
+  <button class="cancel" on:click={onClose}></button>
   <div class="switch-wrap">
     <DriverSwitch bind:value={driver} />
   </div>
-  <div class="content">
-    <input id="url" placeholder="PawnTown CEC Url ..." bind:value={url} />
-    <input id="engine" placeholder="Engine" bind:value={engine} />
-    <input id="mode" placeholder="Mode" bind:value={mode} />
-    <input id="token" placeholder="Token" bind:value={token} />
-    <button on:click={saveUnixScript}>Create Executable</button>
-  </div>
+
+  {#if driver === "PTCEC"}
+    <div
+      class="content"
+      out:fly="{{ x: -250, duration: 250, delay: 0 }}"
+      in:fly="{{ x: -250, duration: 250 }}"
+    >
+      <div class="input-wrap prefix-icon label">
+        <span>Label</span>
+        <input placeholder="My Awesome Cluster" bind:value={label} />
+      </div>
+      <div class="input-wrap prefix-icon url">
+        <span>Cluster URL</span>
+        <input placeholder="https://cec[...].pawn.town:50051" bind:value={url} />
+      </div>
+      <div class="input-wrap prefix-icon engine">
+        <span>Engine</span>
+        <input placeholder="stockfish" bind:value={engine} />
+      </div>
+      <div class="input-wrap prefix-icon mode">
+        <span>Mode</span>
+        <input placeholder="cluster" bind:value={mode} />
+      </div>
+      <div class="input-wrap prefix-icon key">
+        <span>Token</span>
+        <input placeholder="ABC123" bind:value={token} />
+      </div>
+      <button class="submit" on:click={savePTCECRemote}>Add Remote</button>
+    </div>
+  {/if}
+
+  {#if driver === "SSH"}
+    <div
+      class="content"
+      out:fly="{{ x: 250, duration: 250, delay: 0 }}"
+      in:fly="{{ x: 250, duration: 250 }}"
+    >
+      <div class="input-wrap prefix-icon label">
+        <span>Label</span>
+        <input placeholder="My Awesome Cluster" bind:value={sshLabel} />
+      </div>
+      <div class="input-wrap prefix-icon url">
+        <span>Cluster URL</span>
+        <input placeholder="https://cec[...].pawn.town:50051" bind:value={sshUrl} />
+      </div>
+      <div class="input-wrap prefix-icon command">
+        <span>Run Command</span>
+        <input placeholder="mpi stockfish" bind:value={sshRunCommand} />
+      </div>
+      
+      <button class="submit" on:click={saveSSHRemote}>Add Remote</button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -66,7 +157,113 @@
     margin: 12px 0;
   }
 
+  .cancel {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background-color: transparent;
+    background-image: url('/close.svg');
+    background-size: contain;
+    border: none;
+    width: 24px;
+    height: 24px;
+    filter: invert(1) brightness(0.5);
+    cursor: pointer;
+  }
+
+  .cancel:hover {
+    filter: invert(1) brightness(1);
+  }
+
   .content {
-    
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 24px;
+    left: 0;
+    right: 0;
+  }
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #272b30;
+    border: none;
+    padding: 12px;
+    border-radius: 9px;
+    font-size: 14px;
+    outline: none;
+  }
+
+  input::placeholder {
+    color: #4c5257;
+  }
+
+  .input-wrap {
+    position: relative;
+    width: 340px;
+    margin: 7px 0;
+    padding-top: 24px;
+  }
+
+  .input-wrap span {
+    position: absolute;
+    display: block;
+    left: 9px;
+    top: 0;
+    font-size: 14px;
+    color: #62666b;
+  }
+  
+  .prefix-icon input {
+    padding-left: 42px;
+  }
+
+  .prefix-icon::after {
+    position: absolute;
+    left: 7px;
+    top: 24px;
+    bottom: 0;
+    width: 26px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    content: '';
+  }
+
+  .prefix-icon.url::after {
+    background-image: url('/link.svg');
+  }
+
+  .prefix-icon.engine::after {
+    background-image: url('/bolt.svg');
+  }
+
+  .prefix-icon.mode::after {
+    background-image: url('/layer.svg');
+  }
+
+  .prefix-icon.key::after {
+    background-image: url('/key.svg');
+  }
+
+  .prefix-icon.label::after {
+    background-image: url('/label.svg');
+  }
+
+  .prefix-icon.command::after {
+    background-image: url('/return.svg');
+  }
+
+  button.submit {
+    background-color: #0175ff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    margin: 24px 0 0 0;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
   }
 </style>

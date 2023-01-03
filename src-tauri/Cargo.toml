@@ -24,6 +24,10 @@ prost = "0.11.5"
 tokio-stream = "0.1.11"
 futures = "0.3.25"
 
+[dependencies.tauri-plugin-store]
+git = "https://github.com/tauri-apps/tauri-plugin-store"
+rev = "9bd993aa67766596638bbfd91e79a1bf8f632014"
+
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL

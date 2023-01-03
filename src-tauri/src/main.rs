@@ -30,6 +30,7 @@ use std::os::unix::prelude::PermissionsExt;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::env;
 use std::str::{self};
+use tauri_plugin_store::PluginBuilder;
 use tokio_stream::StreamExt;
 use tokio::sync::mpsc;
 use tokio::io::{stdin, AsyncBufReadExt, BufReader};
@@ -60,6 +61,7 @@ fn main() {
 // Starts the UI
 fn start_tauri() {
     tauri::Builder::default()
+        .plugin(PluginBuilder::default().build())
         .invoke_handler(tauri::generate_handler![create_ptcec_unix_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
