@@ -109,6 +109,17 @@
           <p title={"***"}>***</p>
         </div>
       {/if}
+
+      {#if remote.driver === "SSH"}
+        <div class="data">
+          <span>Driver</span>
+          <p title="SSH">SSH</p>
+        </div>
+        <div class="data">
+          <span>RunCommand</span>
+          <p title={remote.runCommand}>{remote.runCommand}</p>
+        </div>
+      {/if}
     </div>
     <div class="actions">
       <div>

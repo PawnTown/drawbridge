@@ -1,6 +1,6 @@
 <script>
   import { GetStore } from '../services/storage';
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { fly } from 'svelte/transition';
   import { v4 as uuidv4 } from 'uuid';
 
@@ -9,6 +9,8 @@
   const store = GetStore();
 
   let driver = "PTCEC";
+
+  let animateTabs = false;
 
   const dispatch = createEventDispatcher();
 
@@ -21,6 +23,10 @@
   let engine = "";
   let mode = "";
   let token = "";
+
+  onMount(() => {
+    animateTabs = true;
+  });
 
   const savePTCECRemote = async () => {
     const remotes = await store.get('remotes');
@@ -69,8 +75,8 @@
   {#if driver === "PTCEC"}
     <div
       class="content"
-      out:fly="{{ x: -250, duration: 250, delay: 0 }}"
-      in:fly="{{ x: -250, duration: 250 }}"
+      out:fly="{{ x: -250, duration: animateTabs ? 250 : 0, delay: 0 }}"
+      in:fly="{{ x: -250, duration: animateTabs ? 250 : 0 }}"
     >
       <div class="input-wrap prefix-icon label">
         <span>Label</span>
@@ -99,8 +105,8 @@
   {#if driver === "SSH"}
     <div
       class="content"
-      out:fly="{{ x: 250, duration: 250, delay: 0 }}"
-      in:fly="{{ x: 250, duration: 250 }}"
+      out:fly="{{ x: 250, duration: animateTabs ? 250 : 0, delay: 0 }}"
+      in:fly="{{ x: 250, duration: animateTabs ? 250 : 0 }}"
     >
       <div class="input-wrap prefix-icon label">
         <span>Label</span>
@@ -108,7 +114,7 @@
       </div>
       <div class="input-wrap prefix-icon url">
         <span>Cluster URL</span>
-        <input placeholder="https://cec[...].pawn.town:50051" bind:value={sshUrl} />
+        <input placeholder="https://yourhost.com:21" bind:value={sshUrl} />
       </div>
       <div class="input-wrap prefix-icon command">
         <span>Run Command</span>
