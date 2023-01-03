@@ -33,7 +33,7 @@
   const savePTCECRemote = async () => {
     const remotes: Remote[] | null = await store.get('remotes');
     const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
-    const newRemotes = [...filteredRemotes, {
+    const newRemote = {
       id: remote.id ?? uuidv4(),
       driver: "PTCEC",
       label: remote.label,
@@ -41,25 +41,27 @@
       engine: remote.engine,
       mode: remote.mode,
       token: remote.token,
-    }];
+    };
+    const newRemotes = [...filteredRemotes, newRemote];
     await store.set("remotes", newRemotes);
     animateTabs = false;
-    dispatch("success");
+    dispatch("success", { remote: newRemote });
   };
 
   const saveSSHRemote = async () => {
     const remotes: Remote[] | null = await store.get('remotes');
     const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
-    const newRemotes = [...filteredRemotes, {
+    const newRemote = {
       id: remote.id ?? uuidv4(),
       driver: "SSH",
       label: remote.label,
       url: remote.url,
       runCommand: remote.runCommand,
-    }];
+    };
+    const newRemotes = [...filteredRemotes, newRemote];
     await store.set("remotes", newRemotes);
     animateTabs = false;
-    dispatch("success");
+    dispatch("success", { remote: newRemote });
   };
 </script>
 

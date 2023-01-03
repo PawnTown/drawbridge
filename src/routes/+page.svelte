@@ -46,7 +46,7 @@
 {#if addRemoteVisible}
   <AddRemote
     on:close={() => addRemoteVisible = false}
-    on:success={() => { addRemoteVisible = false; reloadRemotes(); }}
+    on:success={(item) => { addRemoteVisible = false; visibleDetailsItem = item.detail.remote; reloadRemotes(); }}
   />
 {/if}
 
@@ -54,7 +54,7 @@
   <AddRemote
     remote={remoteToEdit}
     on:close={() => remoteToEdit = null}
-    on:success={() => { remoteToEdit = null; reloadRemotes(); }}
+    on:success={(item) => { remoteToEdit = null; visibleDetailsItem = item.detail.remote; reloadRemotes(); }}
   />
 {/if}
 

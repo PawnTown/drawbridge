@@ -36,15 +36,24 @@
       }]
     });
 
+    let result;
     if (remote.driver === "PTCEC") {
-      const success = await invoke("create_ptcec_unix_script", {
+      result = await invoke("create_ptcec_unix_script", {
         output,
         url: remote.url,
         engine: remote.engine,
         mode: remote.mode,
         token: remote.token,
       });
+    } else if (remote.driver === "SSH") {
+      result = await invoke("create_ssh_unix_script", {
+        output,
+        url: remote.url,
+        runCommand: remote.runCommand,
+      });
     }
+
+    // todo: success or error message
   }
 </script>
   

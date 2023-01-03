@@ -6,7 +6,6 @@
 use std::fs::File;
 use std::fs;
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: String, token: String) -> bool {
     let exec_path;
@@ -24,6 +23,26 @@ fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: S
     fs::set_permissions(output, fs::Permissions::from_mode(500)).unwrap();
     return true;
 }
+
+#[tauri::command]
+fn create_ssh_unix_script(output: String, url: String, run_command: String) -> bool {
+    let exec_path;
+    match env::current_exe() {
+        Ok(exe_path) => exec_path = exe_path.display().to_string(),
+        Err(_) =>  return false,
+    };
+
+    let file = File::create(output.clone());
+
+    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} ssh {} \"{}\"", exec_path, url, run_command).as_bytes()) {
+        return false;
+    }
+
+    fs::set_permissions(output, fs::Permissions::from_mode(500)).unwrap();
+    return true;
+}
+
+
 
 use std::io::Write;
 use std::os::unix::prelude::PermissionsExt;
@@ -63,6 +82,7 @@ fn start_tauri() {
     tauri::Builder::default()
         .plugin(PluginBuilder::default().build())
         .invoke_handler(tauri::generate_handler![create_ptcec_unix_script])
+        .invoke_handler(tauri::generate_handler![create_ssh_unix_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
