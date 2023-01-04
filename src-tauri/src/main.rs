@@ -5,6 +5,11 @@
 
 use std::fs::File;
 use std::fs;
+use std::net::SocketAddr;
+use std::str::FromStr;
+use russh::{client, ChannelId};
+use russh_keys::key;
+use anyhow::Error;
 
 #[tauri::command]
 fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: String, token: String) -> bool {
@@ -46,6 +51,7 @@ fn create_ssh_unix_script(output: String, url: String, run_command: String) -> b
 
 use std::io::Write;
 use std::os::unix::prelude::PermissionsExt;
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::env;
 use std::str::{self};
@@ -97,7 +103,7 @@ async fn start_bridge(args: Vec<String>) -> Result<(), Box<dyn std::error::Error
         return start_ptcec_driver(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone(), gen_session_id()).await;
     }
 
-    if args[1] == "ptcec" {
+    if args[1] == "ssh" {
         println!("Driver not implemented yet.");
         std::process::exit(1);
     }
@@ -169,3 +175,59 @@ fn gen_session_id() -> String {
     let in_ms = since_the_epoch.as_millis();
     format!("drawbridge_{}", in_ms)
 }
+
+// Starts the ssh bridge driver
+async fn start_ssh_driver(url: String, user: String, runCommand: String) -> Result<(), Box<dyn std::error::Error>> {
+    // Open ssh session
+    let config = russh::client::Config::default();
+    let config = Arc::new(config);
+    let sh = Client{};
+
+    let key = russh_keys::key::KeyPair::generate_ed25519().unwrap();
+    let mut agent = russh_keys::agent::client::AgentClient::connect_env().await.unwrap();
+    agent.add_identity(&key, &[]).await.unwrap();
+    let mut session = russh::client::connect(config, SocketAddr::from_str(&url).unwrap(), sh).await.unwrap();
+    if session.authenticate_future(std::env::var(user).unwrap(), key.clone_public_key().unwrap(), agent).await.1.unwrap() {
+        let mut channel = session.channel_open_session().await.unwrap();
+        
+        let stdin = stdin();
+        let mut reader = BufReader::new(stdin);
+        let mut line = String::new();
+        loop {
+            reader.read_line(&mut line).await.unwrap();
+            channel.data(line.as_bytes()).await.unwrap();
+            line.clear();
+        }
+    }
+
+    return Ok(());
+}
+
+struct Client {
+}
+
+impl client::Handler for Client {
+    type Error = anyhow::Error;
+    type FutureUnit = futures::future::Ready<Result<(Self, client::Session), anyhow::Error>>;
+    type FutureBool = futures::future::Ready<Result<(Self, bool), anyhow::Error>>;
+ 
+    fn finished_bool(self, b: bool) -> Self::FutureBool {
+        futures::future::ready(Ok((self, b)))
+    }
+    fn finished(self, session: client::Session) -> Self::FutureUnit {
+        futures::future::ready(Ok((self, session)))
+    }
+    fn check_server_key(self, server_public_key: &key::PublicKey) -> Self::FutureBool {
+        println!("check_server_key: {:?}", server_public_key);
+        self.finished_bool(true)
+    }
+    fn channel_open_confirmation(self, channel: ChannelId, max_packet_size: u32, window_size: u32, session: client::Session) -> Self::FutureUnit {
+        println!("channel_open_confirmation: {:?}", channel);
+        self.finished(session)
+    }
+    fn data(self, channel: ChannelId, data: &[u8], session: client::Session) -> Self::FutureUnit {
+        println!("data on channel {:?}: {:?}", channel, std::str::from_utf8(data));
+        self.finished(session)
+    }
+ }
+ 
