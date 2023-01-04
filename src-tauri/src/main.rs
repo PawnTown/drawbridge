@@ -9,7 +9,6 @@ use std::net::SocketAddr;
 use std::str::FromStr;
 use russh::{client, ChannelId};
 use russh_keys::key;
-use anyhow::Error;
 
 #[tauri::command]
 fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: String, token: String) -> bool {
@@ -177,17 +176,18 @@ fn gen_session_id() -> String {
 }
 
 // Starts the ssh bridge driver
-async fn start_ssh_driver(url: String, user: String, runCommand: String) -> Result<(), Box<dyn std::error::Error>> {
+async fn start_ssh_driver(url: String, user: String, public_key_path: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
     // Open ssh session
     let config = russh::client::Config::default();
     let config = Arc::new(config);
     let sh = Client{};
 
-    let key = russh_keys::key::KeyPair::generate_ed25519().unwrap();
-    let mut agent = russh_keys::agent::client::AgentClient::connect_env().await.unwrap();
-    agent.add_identity(&key, &[]).await.unwrap();
+    let pubKey = russh_keys::load_public_key(public_key_path)?;
+
+    let agent = russh_keys::agent::client::AgentClient::connect_env().await.unwrap();
+    //agent.add_identity(&key, &[]).await.unwrap();
     let mut session = russh::client::connect(config, SocketAddr::from_str(&url).unwrap(), sh).await.unwrap();
-    if session.authenticate_future(std::env::var(user).unwrap(), key.clone_public_key().unwrap(), agent).await.1.unwrap() {
+    if session.authenticate_future(std::env::var(user).unwrap(), pubKey, agent).await.1.unwrap() {
         let mut channel = session.channel_open_session().await.unwrap();
         
         let stdin = stdin();
