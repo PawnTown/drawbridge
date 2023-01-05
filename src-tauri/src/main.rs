@@ -190,24 +190,34 @@ async fn start_ssh_driver(url: String, user: String, private_key_path: String, r
     let mut agent = russh_keys::agent::client::AgentClient::connect_env().await.unwrap();
     agent.add_identity(&private_key, &[]).await.unwrap();
 
-    let mut session = russh::client::connect(config, SocketAddr::from_str(&url).unwrap(), sh).await.unwrap();
-    if session.authenticate_future(std::env::var("USER").unwrap(), private_key.clone_public_key().unwrap(), agent).await.1.unwrap() {
-        let mut channel = session.channel_open_session().await.unwrap();
+    let mut session = russh::client::connect(config, SocketAddr::from_str(&url).unwrap(), sh)
+        .await
+        .unwrap();
 
-        // Run command
-        let mut com: String = run_command.to_owned();
-        com.push_str("\n");
-        channel.data(com.as_bytes()).await.unwrap();
+    let (_, auth_res) = session
+        .authenticate_future(user, private_key.clone_public_key().unwrap(), agent)
+        .await;
 
-        // Start reading from stdin
-        let stdin = stdin();
-        let mut reader = BufReader::new(stdin);
-        let mut line = String::new();
-        loop {
-            reader.read_line(&mut line).await.unwrap();
-            channel.data(line.as_bytes()).await.unwrap();
-            line.clear();
-        }
+    let auth_res = auth_res.unwrap();
+    println!("=== auth: {}", auth_res);
+    
+    let mut channel = session.channel_open_session().await.unwrap();
+
+    // Run command
+    let mut com: String = run_command.to_owned();
+    com.push_str("\n");
+    println!("Start command ...");
+    channel.data(com.as_bytes()).await.unwrap();
+
+    // Start reading from stdin
+    let stdin = stdin();
+    let mut reader = BufReader::new(stdin);
+    let mut line = String::new();
+    loop {
+        println!("Start reading ...");
+        reader.read_line(&mut line).await.unwrap();
+        channel.data(line.as_bytes()).await.unwrap();
+        line.clear();
     }
 
     return Ok(());
