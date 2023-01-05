@@ -103,11 +103,11 @@ async fn start_bridge(args: Vec<String>) -> Result<(), Box<dyn std::error::Error
     }
 
     if args[1] == "ssh" {
-        if args.len() != 7 {
-            println!("Invalid number of arguments. Please use: drawbridge ssh <url> <user> <password> <private-key-path> <run-command>");
+        if args.len() != 6 {
+            println!("Invalid number of arguments. Please use: drawbridge ssh <url> <user> <private-key-path> <run-command>");
             std::process::exit(1);
         }
-        return start_ssh_driver(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone(), args[6].clone()).await;
+        return start_ssh_driver(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone()).await;
     }
 
     println!("Invalid driver name. Please use ptcec or ssh.");
@@ -179,7 +179,7 @@ fn gen_session_id() -> String {
 }
 
 // Starts the ssh bridge driver
-async fn start_ssh_driver(url: String, user: String, password: String, private_key_path: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
+async fn start_ssh_driver(url: String, user: String, private_key_path: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
     // Open ssh session
     let config = russh::client::Config::default();
     let config = Arc::new(config);
