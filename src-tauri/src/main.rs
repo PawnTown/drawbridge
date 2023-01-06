@@ -3,12 +3,12 @@
     windows_subsystem = "windows"
 )]
 
+mod driver;
+
 use std::fs::File;
 use std::fs;
 use std::net::SocketAddr;
 use std::str::FromStr;
-use russh::{client, ChannelId};
-use russh_keys::key;
 
 #[tauri::command]
 fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: String, token: String) -> bool {
@@ -64,6 +64,8 @@ use tokio_stream::wrappers::ReceiverStream;
 use tonic::metadata::AsciiMetadataValue;
 use tonic::transport::Channel;
 use tonic::Request;
+
+use crate::driver::ssh::Session;
 pub mod proto {
     tonic::include_proto!("proto");
 }
@@ -179,73 +181,36 @@ fn gen_session_id() -> String {
 }
 
 // Starts the ssh bridge driver
-async fn start_ssh_driver(url: String, user: String, private_key_path: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
-    // Open ssh session
-    let config = russh::client::Config::default();
-    let config = Arc::new(config);
-    let sh = Client{};
+async fn start_ssh_driver(host: String, user: String, private_key_path: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
+    let (remote_stdout_tx, remote_stdout) = mpsc::channel(80);
+    let (remote_stdin_tx, remote_stdin) = mpsc::channel(80);
+    let mut out_stream = ReceiverStream::new(remote_stdout);
 
-    let private_key = russh_keys::load_secret_key(private_key_path, None)?;
+    tokio::spawn(async move {
+        let stdin = stdin();
+        let mut reader = BufReader::new(stdin);
+        let mut line = String::new();
+        loop {
+            reader.read_line(&mut line).await.unwrap();
+            remote_stdin_tx.send(line.as_bytes().to_vec()).await.unwrap();
+            line.clear();
+        }
+    });
 
-    let mut agent = russh_keys::agent::client::AgentClient::connect_env().await.unwrap();
-    agent.add_identity(&private_key, &[]).await.unwrap();
+    let mut ssh = Session::connect(private_key_path, user, SocketAddr::from_str(&host).unwrap(), remote_stdout_tx).await?;
+    ssh.run(&run_command, remote_stdin).await.unwrap();
 
-    let mut session = russh::client::connect(config, SocketAddr::from_str(&url).unwrap(), sh)
-        .await
-        .unwrap();
-
-    let (_, auth_res) = session
-        .authenticate_future(user, private_key.clone_public_key().unwrap(), agent)
-        .await;
-
-    let auth_res = auth_res.unwrap();
-    println!("=== auth: {}", auth_res);
-    
-    let mut channel = session.channel_open_session().await.unwrap();
-
-    // Run command
-    let mut com: String = run_command.to_owned();
-    com.push_str("\n");
-    println!("Start command ...");
-    channel.data(com.as_bytes()).await.unwrap();
-
-    // Start reading from stdin
-    let stdin = stdin();
-    let mut reader = BufReader::new(stdin);
-    let mut line = String::new();
-    loop {
-        println!("Start reading ...");
-        reader.read_line(&mut line).await.unwrap();
-        channel.data(line.as_bytes()).await.unwrap();
-        line.clear();
+    // Remote sdout
+    while let Some(item) = out_stream.next().await {
+        match str::from_utf8(&item) {
+            Ok(v) => println!("{}", v),
+            Err(_) => {/* ignored */},
+        };
     }
 
+    println!("Ok!");
+    ssh.close().await?;
     return Ok(());
 }
 
-struct Client {
-}
-
-impl client::Handler for Client {
-    type Error = anyhow::Error;
-    type FutureUnit = futures::future::Ready<Result<(Self, client::Session), anyhow::Error>>;
-    type FutureBool = futures::future::Ready<Result<(Self, bool), anyhow::Error>>;
- 
-    fn finished_bool(self, b: bool) -> Self::FutureBool {
-        futures::future::ready(Ok((self, b)))
-    }
-    fn finished(self, session: client::Session) -> Self::FutureUnit {
-        futures::future::ready(Ok((self, session)))
-    }
-    fn check_server_key(self, server_public_key: &key::PublicKey) -> Self::FutureBool {
-        self.finished_bool(true)
-    }
-    fn channel_open_confirmation(self, channel: ChannelId, max_packet_size: u32, window_size: u32, session: client::Session) -> Self::FutureUnit {
-        self.finished(session)
-    }
-    fn data(self, channel: ChannelId, data: &[u8], session: client::Session) -> Self::FutureUnit {
-        println!("data on channel {:?}: {:?}", channel, std::str::from_utf8(data));
-        self.finished(session)
-    }
- }
  

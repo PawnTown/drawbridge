@@ -26,6 +26,8 @@ futures = "0.3.25"
 russh = "0.34.0"
 russh-keys = "0.22.0"
 anyhow = "1.0.68"
+async-trait = "0.1.60"
+async-ssh = "0.1.2"
 
 [dependencies.tauri-plugin-store]
 git = "https://github.com/tauri-apps/tauri-plugin-store"
