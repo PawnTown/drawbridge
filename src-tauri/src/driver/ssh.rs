@@ -1,17 +1,86 @@
 use std::io::Write;
+use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use std::str::{self};
+use std::str::{self, FromStr};
 
 use anyhow::Result;
 use async_trait::async_trait;
 use russh::*;
 use russh::client::Msg;
 use russh_keys::*;
+use tokio::io::{BufReader, stdin, AsyncBufReadExt};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tokio_stream::StreamExt;
+
+use super::Driver;
+
+pub struct SshDriver {}
+
+#[async_trait]
+impl Driver for SshDriver {
+    async fn run(&self, args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
+        if args.len() != 6 {
+            println!("Invalid number of arguments. Please use: drawbridge ssh <url> <user> <private-key-path> <run-command>");
+            std::process::exit(1);
+        }
+
+        return start_ssh_driver(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone()).await;
+    }
+}
+
+// Starts the ssh bridge driver
+async fn start_ssh_driver(host: String, user: String, private_key_path: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
+    
+    // Open SSH Session
+    let key_pair = load_secret_key(private_key_path, None)?;
+    let config = client::Config {
+        connection_timeout: Some(Duration::from_secs(5)),
+        ..<_>::default()
+    };
+    let config = Arc::new(config);
+    let sh = Client {};
+    let mut session = client::connect(config, SocketAddr::from_str(&host).unwrap(), sh).await?;
+    let _auth_res = session
+        .authenticate_publickey(user, Arc::new(key_pair))
+        .await?;
+    
+    // Create new channel
+    let mut channel = session.channel_open_session().await.unwrap();
+
+    // Remote stdin
+    tokio::spawn(async move {
+        println!("Waiting for data");
+        while let Some(msg) = channel.wait().await {
+            match msg {
+                russh::ChannelMsg::Data { ref data } => {
+                    match str::from_utf8(data) {
+                        Ok(v) => println!("{}", v),
+                        Err(_) => {/* ignored */},
+                    };
+                }
+                _ => {}
+            }
+        }
+        println!("Exited reading");
+    });
+
+    Ok(())
+
+    /*channel.exec(false, &run_command).await.unwrap();
+
+    let stdin = stdin();
+    let mut reader = BufReader::new(stdin);
+    let mut line = String::new();
+    loop {
+        println!("> ");
+        reader.read_line(&mut line).await.unwrap();
+        channel.exec(false, &line).await.unwrap();
+        line.clear();
+    }*/
+}
 
 struct Client {}
 
@@ -38,67 +107,3 @@ impl client::Handler for Client {
         self.finished(session)
     }*/
  }
-
-pub struct Session {
-    session: client::Handle<Client>,
-    stdout: mpsc::Sender<Vec<u8>>,
-}
-
-impl Session {
-    pub async fn connect<P: AsRef<Path>>(
-        key_path: P,
-        user: impl Into<String>,
-        addrs: std::net::SocketAddr,
-        stdout: mpsc::Sender<Vec<u8>>,
-    ) -> Result<Self> {
-        let key_pair = load_secret_key(key_path, None)?;
-        let config = client::Config {
-            connection_timeout: Some(Duration::from_secs(5)),
-            ..<_>::default()
-        };
-        let config = Arc::new(config);
-        let sh = Client {};
-        let mut session = client::connect(config, addrs, sh).await?;
-        let _auth_res = session
-            .authenticate_publickey(user, Arc::new(key_pair))
-            .await?;
-        Ok(Self { session, stdout })
-    }
-
-    pub async fn run(&mut self, command: &str, stdin: mpsc::Receiver<Vec<u8>>, ) -> Result<()> {
-        let mut channel: Arc<Mutex<Channel<Msg>>> = Arc::new(Mutex::new(self.session.channel_open_session().await.unwrap()));
-        
-        let guard = channel.lock().unwrap();
-        guard.exec(false, command).await?;
-
-        let mut in_stream: ReceiverStream<Vec<u8>> = ReceiverStream::new(stdin);
-        tokio::spawn(async move {
-            while let Some(item) = in_stream.next().await {
-                let guard = channel.get_mut().unwrap();
-                match str::from_utf8(&item) {
-                    Ok(v) => guard.exec(false, v).await.unwrap(),
-                    Err(_) => {/* Not handled :) */},
-                };
-            }
-        });
-
-        while let Some(msg) = channel.get_mut().unwrap().wait().await {
-            match msg {
-                russh::ChannelMsg::Data { ref data } => {
-                    let output = Vec::new();
-                    output.write_all(data).unwrap();
-                    self.stdout.send(output).await.unwrap();
-                }
-                _ => {}
-            }
-        }
-        Ok(())
-    }
-
-    pub async fn close(&mut self) -> Result<()> {
-        self.session
-            .disconnect(Disconnect::ByApplication, "", "English")
-            .await?;
-        Ok(())
-    }
-}
