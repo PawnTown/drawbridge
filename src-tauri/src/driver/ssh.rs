@@ -1,19 +1,13 @@
-use std::io::Write;
 use std::net::SocketAddr;
-use std::path::Path;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use std::time::Duration;
-use std::str::{self, FromStr};
+use std::str::{FromStr};
 
-use anyhow::Result;
+use anyhow::{Result};
 use async_trait::async_trait;
 use russh::*;
-use russh::client::Msg;
 use russh_keys::*;
-use tokio::io::{BufReader, stdin, AsyncBufReadExt};
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
-use tokio_stream::StreamExt;
+use tokio::io::{BufReader, stdin, AsyncBufReadExt, AsyncWriteExt, AsyncReadExt};
 
 use super::Driver;
 
@@ -27,12 +21,18 @@ impl Driver for SshDriver {
             std::process::exit(1);
         }
 
-        return start_ssh_driver(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone()).await;
+        match start_ssh_driver(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone()).await {
+            Err(_) => {
+                println!("Something failed");
+                std::process::exit(1);
+            },
+            _ => Ok(()),
+        }
     }
 }
 
 // Starts the ssh bridge driver
-async fn start_ssh_driver(host: String, user: String, private_key_path: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
+async fn start_ssh_driver(host: String, user: String, private_key_path: String, run_command: String) -> Result<(), anyhow::Error> {
     
     // Open SSH Session
     let key_pair = load_secret_key(private_key_path, None)?;
@@ -48,38 +48,45 @@ async fn start_ssh_driver(host: String, user: String, private_key_path: String, 
         .await?;
     
     // Create new channel
-    let mut channel = session.channel_open_session().await.unwrap();
+    let channel = session.channel_open_session().await.unwrap();
+    let mut stream = channel.into_stream();
 
-    // Remote stdin
-    tokio::spawn(async move {
-        println!("Waiting for data");
-        while let Some(msg) = channel.wait().await {
-            match msg {
-                russh::ChannelMsg::Data { ref data } => {
-                    match str::from_utf8(data) {
-                        Ok(v) => println!("{}", v),
-                        Err(_) => {/* ignored */},
-                    };
-                }
-                _ => {}
-            }
-        }
-        println!("Exited reading");
-    });
+    // First Command
+    let mut first_com = run_command;
+    first_com.push_str("\n");
+    stream.write_all(&first_com.as_bytes()).await.unwrap();
 
-    Ok(())
 
-    /*channel.exec(false, &run_command).await.unwrap();
-
+    // Start async stuff
     let stdin = stdin();
     let mut reader = BufReader::new(stdin);
-    let mut line = String::new();
-    loop {
-        println!("> ");
-        reader.read_line(&mut line).await.unwrap();
-        channel.exec(false, &line).await.unwrap();
-        line.clear();
-    }*/
+
+    let mut line_in= String::new();
+    let mut line_out = String::new();
+
+    match tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                res = stream.read_to_string(&mut line_out) => {
+                    match res {
+                        Err(_) => break,
+                        _ => println!("{}", line_out),
+                    }
+                },
+                res = reader.read_line(&mut line_in) => {
+                    match res {
+                        Err(_) => break,
+                        _ => stream.write_all(&line_in.as_bytes()).await.unwrap(),
+                    }
+                }
+            }
+        }
+        anyhow::Ok::<()>(())
+    }).await? {
+        _ => {},
+    }
+
+   return Ok(());
 }
 
 struct Client {}
@@ -87,23 +94,11 @@ struct Client {}
 #[async_trait]
 impl client::Handler for Client {
     type Error = anyhow::Error;
-    type FutureUnit = futures::future::Ready<Result<(Self, client::Session), anyhow::Error>>;
-    type FutureBool = futures::future::Ready<Result<(Self, bool), anyhow::Error>>;
  
-    fn finished_bool(self, b: bool) -> Self::FutureBool {
-        futures::future::ready(Ok((self, b)))
+    async fn check_server_key(
+        self,
+        _server_public_key: &key::PublicKey,
+    ) -> Result<(Self, bool), Self::Error> {
+        Ok((self, true))
     }
-    fn finished(self, session: client::Session) -> Self::FutureUnit {
-        futures::future::ready(Ok((self, session)))
-    }
-    fn check_server_key(self, _server_public_key: &key::PublicKey) -> Self::FutureBool {
-        self.finished_bool(true)
-    }
-    /*fn channel_open_confirmation(self, channel: ChannelId, max_packet_size: u32, window_size: u32, session: client::Session) -> Self::FutureUnit {
-        self.finished(session)
-    }
-    fn data(self, channel: ChannelId, data: &[u8], session: client::Session) -> Self::FutureUnit {
-        self.stdout.send(data.to_vec());
-        self.finished(session)
-    }*/
  }
