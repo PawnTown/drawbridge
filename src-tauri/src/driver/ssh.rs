@@ -1,8 +1,7 @@
 
-use std::process::Stdio;
+use std::process::{Stdio, Command};
 
 use async_trait::async_trait;
-use tokio::process::Command;
 
 use super::Driver;
 
@@ -27,7 +26,7 @@ impl Driver for SshDriver {
 }
 
 // Starts the ssh bridge driver
-async fn start_ssh_driver(host: String, run_command: String) -> Result<(), anyhow::Error> {
+async fn start_ssh_driver(host: String, run_command: String) -> Result<(), Box<dyn std::error::Error>> {
     let mut child = Command::new("ssh")
         .args(&[
             &host,
@@ -37,7 +36,7 @@ async fn start_ssh_driver(host: String, run_command: String) -> Result<(), anyho
         .stdout(Stdio::inherit())
         .spawn()?;
 
-    child.wait().await?;
+    child.wait()?;
 
     return Ok(());
 }
