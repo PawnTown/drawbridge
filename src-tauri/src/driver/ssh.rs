@@ -11,7 +11,7 @@ pub struct SshDriver {}
 #[async_trait]
 impl Driver for SshDriver {
     async fn run(&self, args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
-        if args.len() != 5 {
+        if args.len() != 4 {
             println!("Invalid number of arguments. Please use: drawbridge ssh <url> <run-command>");
             std::process::exit(1);
         }
