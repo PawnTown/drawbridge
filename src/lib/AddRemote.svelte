@@ -118,7 +118,7 @@
       </div>
       <div class="input-wrap prefix-icon url">
         <span>Cluster URL</span>
-        <input placeholder="https://yourhost.com:21" bind:value={remote.url} />
+        <input placeholder="root@0.0.0.0" bind:value={remote.url} />
       </div>
       <div class="input-wrap prefix-icon command">
         <span>Run Command</span>
