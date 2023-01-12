@@ -7,9 +7,14 @@ mod driver;
 mod storage;
 mod win_cmd;
 use std::fs::File;
-use std::{fs, env};
+use std::env;
 use std::io::Write;
+
+#[cfg(target_os = "unix")]
 use std::os::unix::prelude::PermissionsExt;
+
+#[cfg(target_os = "unix")]
+use std::fs;
 
 #[tauri::command]
 fn load_data(key: String) -> String {
@@ -28,26 +33,26 @@ fn save_data(key: String, val: String) -> bool {
 }
 
 #[tauri::command]
-fn get_shortcut_extension() -> String {
+fn get_os() -> String {
     if cfg!(windows) {
-       return "ink".to_string()
+       return "win".to_string()
     } else if cfg!(unix) {
-        return "".to_string()
+        return "unix".to_string()
     }
-    return "".to_string();
+    return "unix".to_string();
 }
 
 #[tauri::command]
 fn create_shortcut(output: String, id: String) -> bool {
-    if cfg!(windows) {
-       return create_win_shortcut(output, id);
-    } else if cfg!(unix) {
-        return create_unix_script(output, id);
-    }
-    return false;
+    #[cfg(target_os = "unix")]
+    return unix_create_shortcut(output, id);
+
+    #[cfg(target_os = "windows")]
+    return win_create_shortcut(output, id);
 }
 
-fn create_unix_script(output: String, id: String) -> bool {
+#[cfg(target_os = "unix")]
+fn unix_create_shortcut(output: String, id: String) -> bool {
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
@@ -64,7 +69,8 @@ fn create_unix_script(output: String, id: String) -> bool {
     return true;
 }
 
-fn create_win_shortcut(output: String, id: String) -> bool {
+#[cfg(target_os = "windows")]
+fn win_create_shortcut(output: String, id: String) -> bool {
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
@@ -110,7 +116,7 @@ fn main() {
 // Starts the UI
 fn start_tauri() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![create_shortcut, get_shortcut_extension, save_data, load_data])
+        .invoke_handler(tauri::generate_handler![create_shortcut, get_os, save_data, load_data])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

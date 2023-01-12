@@ -29,12 +29,12 @@
   };
 
   async function saveUnixScript() {
-    let exts: string = await invoke("get_shortcut_extension");
+    let os: string = await invoke("get_os");
 
     const output = await save({
       filters: [{
         name: 'Image',
-        extensions: exts.split(","),
+        extensions: os === "win" ? ["ink"] : ["", ".sh"],
       }]
     });
 
