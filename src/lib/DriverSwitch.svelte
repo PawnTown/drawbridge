@@ -1,14 +1,14 @@
 <script>
-export let value = 'PTCEC';
+export let value = 'ptcec';
 </script>
 
 <div class="switch">
-  <div class={value === "PTCEC" ? "toggle-back" : "toggle-back right"}></div>
+  <div class={value === "ptcec" ? "toggle-back" : "toggle-back right"}></div>
   <div class="toggle-text">
-    <button class={value === "PTCEC" ? "active" : ""} on:click={() => value = 'PTCEC'}>
+    <button class={value === "ptcec" ? "active" : ""} on:click={() => value = 'ptcec'}>
       PTCEC
     </button>
-    <button class={value === "PTCEC" ? "" : "active"} on:click={() => value = 'SSH'}>
+    <button class={value === "ptcec" ? "" : "active"} on:click={() => value = 'ssh'}>
       SSH
     </button>
   </div>

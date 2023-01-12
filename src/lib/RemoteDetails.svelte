@@ -29,29 +29,19 @@
   };
 
   async function saveUnixScript() {
+    let exts: string = await invoke("get_shortcut_extension");
+
     const output = await save({
       filters: [{
         name: 'Image',
-        extensions: ["", ".sh"]
+        extensions: exts.split(","),
       }]
     });
 
-    let result;
-    if (remote.driver === "PTCEC") {
-      result = await invoke("create_ptcec_unix_script", {
-        output,
-        url: remote.url,
-        engine: remote.engine,
-        mode: remote.mode,
-        token: remote.token,
-      });
-    } else if (remote.driver === "SSH") {
-      result = await invoke("create_ssh_unix_script", {
-        output,
-        url: remote.url,
-        runCommand: remote.runCommand,
-      });
-    }
+    let result : boolean = await invoke("create_shortcut", {
+      output,
+      id: remote.id,
+    });
 
     // todo: success or error message
   }
@@ -104,7 +94,7 @@
         <p title={remote.url}>{remote.url}</p>
       </div>
 
-      {#if remote.driver === "PTCEC"}
+      {#if remote.driver === "ptcec"}
         <div class="data">
           <span>Driver</span>
           <p title="PTCEC">PTCEC</p>
@@ -123,7 +113,7 @@
         </div>
       {/if}
 
-      {#if remote.driver === "SSH"}
+      {#if remote.driver === "ssh"}
         <div class="data">
           <span>Driver</span>
           <p title="SSH">SSH</p>

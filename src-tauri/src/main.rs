@@ -4,14 +4,50 @@
 )]
 
 mod driver;
+mod storage;
+mod win_cmd;
 use std::fs::File;
 use std::{fs, env};
 use std::io::Write;
 use std::os::unix::prelude::PermissionsExt;
-use tauri_plugin_store::PluginBuilder;
 
 #[tauri::command]
-fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: String, token: String) -> bool {
+fn load_data(key: String) -> String {
+    match storage::load(key) {
+        Ok(json) => return json.to_string(),
+        Err(_) => return "null".to_string(),
+    }
+}
+
+#[tauri::command]
+fn save_data(key: String, val: String) -> bool {
+    match storage::save(key, val) {
+        Ok(_) => return true,
+        Err(_) => return false,
+    }
+}
+
+#[tauri::command]
+fn get_shortcut_extension() -> String {
+    if cfg!(windows) {
+       return "ink".to_string()
+    } else if cfg!(unix) {
+        return "".to_string()
+    }
+    return "".to_string();
+}
+
+#[tauri::command]
+fn create_shortcut(output: String, id: String) -> bool {
+    if cfg!(windows) {
+       return create_win_shortcut(output, id);
+    } else if cfg!(unix) {
+        return create_unix_script(output, id);
+    }
+    return false;
+}
+
+fn create_unix_script(output: String, id: String) -> bool {
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
@@ -20,7 +56,7 @@ fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: S
 
     let file = File::create(output.clone());
 
-    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} ptcec {} {} {} {}", exec_path, url, engine, mode, token).as_bytes()) {
+    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} connect {}", exec_path, id).as_bytes()) {
         return false;
     }
 
@@ -28,8 +64,7 @@ fn create_ptcec_unix_script(output: String, url: String, engine: String, mode: S
     return true;
 }
 
-#[tauri::command]
-fn create_ssh_unix_script(output: String, url: String, run_command: String) -> bool {
+fn create_win_shortcut(output: String, id: String) -> bool {
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
@@ -38,11 +73,23 @@ fn create_ssh_unix_script(output: String, url: String, run_command: String) -> b
 
     let file = File::create(output.clone());
 
-    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} ssh {} \"{}\"", exec_path, url, run_command).as_bytes()) {
+    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} connect {}", exec_path, id).as_bytes()) {
         return false;
     }
 
-    fs::set_permissions(output, fs::Permissions::from_mode(500)).unwrap();
+    win_cmd::run_temp_script(
+        format!(
+            "
+
+            Set oWS = WScript.CreateObject(\"WScript.Shell\")
+sLinkFile = \"{}\"
+Set oLink = oWS.CreateShortcut(sLinkFile)
+    oLink.TargetPath = \"{}\"
+    oLink.Arguments = \"connect {}\"
+oLink.Save
+        ",output, exec_path, id),
+        "mk_shortcut.vbs",
+    ).unwrap();
     return true;
 }
 
@@ -63,8 +110,7 @@ fn main() {
 // Starts the UI
 fn start_tauri() {
     tauri::Builder::default()
-        .plugin(PluginBuilder::default().build())
-        .invoke_handler(tauri::generate_handler![create_ptcec_unix_script, create_ssh_unix_script])
+        .invoke_handler(tauri::generate_handler![create_shortcut, get_shortcut_extension, save_data, load_data])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

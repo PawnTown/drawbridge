@@ -8,7 +8,7 @@
   import type { Remote } from '../models/remote';
   
   export let remote: Remote = {
-    driver: "PTCEC",
+    driver: "ptcec",
     label: "",
     url: "",
     engine: "",
@@ -35,7 +35,7 @@
     const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
     const newRemote = {
       id: remote.id ?? uuidv4(),
-      driver: "PTCEC",
+      driver: "ptcec",
       label: remote.label,
       url: remote.url,
       engine: remote.engine,
@@ -53,7 +53,7 @@
     const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
     const newRemote = {
       id: remote.id ?? uuidv4(),
-      driver: "SSH",
+      driver: "ssh",
       label: remote.label,
       url: remote.url,
       runCommand: remote.runCommand,
@@ -76,7 +76,7 @@
     <DriverSwitch bind:value={remote.driver} />
   </div>
 
-  {#if remote.driver === "PTCEC"}
+  {#if remote.driver === "ptcec"}
     <div
       class="content"
       out:fly="{{ x: -250, duration: animateTabs ? 250 : 0, delay: 0 }}"
@@ -106,7 +106,7 @@
     </div>
   {/if}
 
-  {#if remote.driver === "SSH"}
+  {#if remote.driver === "ssh"}
     <div
       class="content"
       out:fly="{{ x: 250, duration: animateTabs ? 250 : 0, delay: 0 }}"

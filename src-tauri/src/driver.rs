@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 
+pub mod connect;
 pub mod ssh;
 pub mod ptcec;
 
@@ -9,12 +10,16 @@ pub trait Driver {
 }
 
 pub fn get_driver(driver_name: String) -> Option<Box<dyn Driver>> {
-    if driver_name == "ptcec" {
+    if driver_name.eq("ptcec") {
         return Some(Box::new(ptcec::PtcecDriver{}));
     }
 
-    if driver_name == "ssh" {
+    if driver_name.eq("ssh") {
         return Some(Box::new(ssh::SshDriver{}));
+    }
+
+    if driver_name.eq("connect") {
+        return Some(Box::new(connect::ConnectDriver{}));
     }
 
     return None;

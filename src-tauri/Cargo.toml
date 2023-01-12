@@ -24,10 +24,8 @@ prost = "0.11.5"
 tokio-stream = "0.1.11"
 futures = "0.3.25"
 async-trait = "0.1.60"
-
-[dependencies.tauri-plugin-store]
-git = "https://github.com/tauri-apps/tauri-plugin-store"
-rev = "9bd993aa67766596638bbfd91e79a1bf8f632014"
+directories = "4.0.1"
+base64 = "0.21.0"
 
 [features]
 # by default Tauri runs in production mode

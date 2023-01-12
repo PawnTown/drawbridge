@@ -5,14 +5,24 @@
   font-weight: 400;
   overflow: hidden;
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+  color: #f6f6f6;
+  background-color: #1a1c20;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+}
+
+a:hover {
+  color: #24c8db;
+}
+
+input,
+button {
+  color: #ffffff;
+  background-color: #0f0f0f98;
 }
 
 .container {
