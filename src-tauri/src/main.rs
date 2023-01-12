@@ -6,9 +6,7 @@
 mod driver;
 mod storage;
 mod win_cmd;
-use std::fs::File;
 use std::env;
-use std::io::Write;
 
 #[cfg(target_os = "unix")]
 use std::os::unix::prelude::PermissionsExt;
@@ -44,11 +42,13 @@ fn get_os() -> String {
 
 #[tauri::command]
 fn create_shortcut(output: String, id: String) -> bool {
-    #[cfg(target_os = "unix")]
-    return unix_create_shortcut(output, id);
+    #[cfg(target_os = "unix")] {
+        return unix_create_shortcut(output, id);
+    }
 
-    #[cfg(target_os = "windows")]
-    return win_create_shortcut(output, id);
+    #[cfg(target_os = "windows")] {
+        return win_create_shortcut(output, id);
+    }
 }
 
 #[cfg(target_os = "unix")]
