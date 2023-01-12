@@ -77,23 +77,15 @@ fn win_create_shortcut(output: String, id: String) -> bool {
         Err(_) =>  return false,
     };
 
-    let file = File::create(output.clone());
-
-    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} connect {}", exec_path, id).as_bytes()) {
-        return false;
-    }
-
     win_cmd::run_temp_script(
         format!(
             "
-
-            Set oWS = WScript.CreateObject(\"WScript.Shell\")
-sLinkFile = \"{}\"
-Set oLink = oWS.CreateShortcut(sLinkFile)
-    oLink.TargetPath = \"{}\"
-    oLink.Arguments = \"connect {}\"
-oLink.Save
-        ",output, exec_path, id),
+Set oWS = WScript.CreateObject(\"WScript.Shell\")
+Set oLink = oWS.CreateShortcut(\"{}\")
+oLink.TargetPath = \"{}\"
+oLink.Arguments = \"connect {}\"
+oLink.Save()
+        ", output, exec_path, id),
         "mk_shortcut.vbs",
     ).unwrap();
     return true;

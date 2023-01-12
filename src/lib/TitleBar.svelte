@@ -107,6 +107,7 @@
     border: none;
     padding: 0;
     background-color: transparent;
+    transition: ease-in 0.1s;
   }
 
   .titlebar-button-win.close-win::before {
