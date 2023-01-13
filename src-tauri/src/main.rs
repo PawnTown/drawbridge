@@ -8,12 +8,6 @@ mod storage;
 mod win_cmd;
 use std::env;
 
-#[cfg(target_os = "unix")]
-use std::os::unix::prelude::PermissionsExt;
-
-#[cfg(target_os = "unix")]
-use std::fs;
-
 #[tauri::command]
 fn load_data(key: String) -> String {
     match storage::load(key) {
@@ -45,8 +39,13 @@ fn create_shortcut(output: String, id: String) -> bool {
     return os_create_shortcut(output, id);
 }
 
-#[cfg(target_os = "unix")]
+#[cfg(target_family = "unix")]
 fn os_create_shortcut(output: String, id: String) -> bool {
+    use fs::File;
+    use std::fs;
+    use std::io::Write;
+    use std::os::unix::prelude::PermissionsExt;
+
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
@@ -63,7 +62,7 @@ fn os_create_shortcut(output: String, id: String) -> bool {
     return true;
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(target_family = "windows")]
 fn os_create_shortcut(output: String, id: String) -> bool {
     let exec_path;
     match env::current_exe() {
