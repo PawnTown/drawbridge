@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="240" src="https://github.com/PawnTown/drawbridge/blob/main/app-icon.png?raw=true">
+</p>
+
 # DrawBridge
 
 This Project will be a open source UCI engine bridging software.
