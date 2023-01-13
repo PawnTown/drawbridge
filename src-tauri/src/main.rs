@@ -5,7 +5,6 @@
 
 mod driver;
 mod storage;
-mod win_cmd;
 use std::env;
 
 #[tauri::command]
@@ -64,6 +63,8 @@ fn os_create_shortcut(output: String, id: String) -> bool {
 
 #[cfg(target_family = "windows")]
 fn os_create_shortcut(output: String, id: String) -> bool {
+    mod win_cmd;
+    
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
