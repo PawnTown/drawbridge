@@ -51,6 +51,7 @@ impl Driver for ConnectDriver {
                         driver_name.to_string(),
                         r["url"].as_str().unwrap().to_string(),
                         r["runCommand"].as_str().unwrap().to_string(),
+                        r["privateKeyFile"].as_str().unwrap().to_string(),
                     ]).await;
                 }
 
