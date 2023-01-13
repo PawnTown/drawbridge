@@ -3,6 +3,9 @@
     windows_subsystem = "windows"
 )]
 
+#[cfg(target_family = "windows")]
+mod win_cmd;
+
 mod driver;
 mod storage;
 use std::env;
@@ -63,8 +66,6 @@ fn os_create_shortcut(output: String, id: String) -> bool {
 
 #[cfg(target_family = "windows")]
 fn os_create_shortcut(output: String, id: String) -> bool {
-    mod win_cmd;
-    
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
