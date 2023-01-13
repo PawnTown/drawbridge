@@ -119,6 +119,10 @@
           <p title="SSH">SSH</p>
         </div>
         <div class="data">
+          <span>PrivateKey</span>
+          <p title={remote.privateKeyFile ?? "-"}>{remote.privateKeyFile ?? "-"}</p>
+        </div>
+        <div class="data">
           <span>RunCommand</span>
           <p title={remote.runCommand}>{remote.runCommand}</p>
         </div>

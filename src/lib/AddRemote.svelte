@@ -6,6 +6,7 @@
 
   import DriverSwitch from './DriverSwitch.svelte';
   import type { Remote } from '../models/remote';
+    import FileDrop from './FileDrop.svelte';
   
   export let remote: Remote = {
     driver: "ptcec",
@@ -15,6 +16,7 @@
     runCommand: "",
     mode: "",
     token: "",
+    privateKeyFile: "",
   };
   
   const store = GetStore();
@@ -57,6 +59,7 @@
       label: remote.label,
       url: remote.url,
       runCommand: remote.runCommand,
+      privateKeyFile: remote.privateKeyFile,
     };
     const newRemotes = [...filteredRemotes, newRemote];
     await store.set("remotes", newRemotes);
@@ -84,23 +87,23 @@
     >
       <div class="input-wrap prefix-icon label">
         <span>Label</span>
-        <input placeholder="My Awesome Cluster" bind:value={remote.label} />
+        <input type="text" autocorrect="off" autocapitalize="none" placeholder="My Awesome Cluster" bind:value={remote.label} />
       </div>
       <div class="input-wrap prefix-icon url">
         <span>Cluster URL</span>
-        <input placeholder="https://cec[...].pawn.town:50051" bind:value={remote.url} />
+        <input type="url" autocorrect="off" autocapitalize="none" placeholder="https://cec[...].pawn.town:50051" bind:value={remote.url} />
       </div>
       <div class="input-wrap prefix-icon engine">
         <span>Engine</span>
-        <input placeholder="stockfish" bind:value={remote.engine} />
+        <input type="text" autocorrect="off" autocapitalize="none" placeholder="stockfish" bind:value={remote.engine} />
       </div>
       <div class="input-wrap prefix-icon mode">
         <span>Mode</span>
-        <input placeholder="cluster" bind:value={remote.mode} />
+        <input type="text" autocorrect="off" autocapitalize="none" placeholder="cluster" bind:value={remote.mode} />
       </div>
-      <div class="input-wrap prefix-icon key">
+      <div class="input-wrap prefix-icon token">
         <span>Token</span>
-        <input placeholder="ABC123" bind:value={remote.token} />
+        <input type="text" autocorrect="off" autocapitalize="none" placeholder="ABC123" bind:value={remote.token} />
       </div>
       <button class="submit" on:click={savePTCECRemote}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
     </div>
@@ -114,15 +117,19 @@
     >
       <div class="input-wrap prefix-icon label">
         <span>Label</span>
-        <input placeholder="My Awesome Cluster" bind:value={remote.label} />
+        <input type="text" autocorrect="off" autocapitalize="none" placeholder="My Awesome Cluster" bind:value={remote.label} />
       </div>
       <div class="input-wrap prefix-icon url">
         <span>Cluster URL</span>
-        <input placeholder="root@0.0.0.0" bind:value={remote.url} />
+        <input type="url" autocorrect="off" autocapitalize="none" placeholder="root@0.0.0.0" bind:value={remote.url} />
+      </div>
+      <div class="input-wrap">
+        <span>Private Key File</span>
+        <FileDrop bind:value={remote.privateKeyFile} />
       </div>
       <div class="input-wrap prefix-icon command">
         <span>Run Command</span>
-        <input placeholder="mpi stockfish" bind:value={remote.runCommand} />
+        <input type="text" autocorrect="off" autocapitalize="none" placeholder="mpi stockfish" bind:value={remote.runCommand} />
       </div>
       
       <button class="submit" on:click={saveSSHRemote}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
@@ -236,8 +243,8 @@
     background-image: url('/layer.svg');
   }
 
-  .prefix-icon.key::after {
-    background-image: url('/key.svg');
+  .prefix-icon.token::after {
+    background-image: url('/token.svg');
   }
 
   .prefix-icon.label::after {

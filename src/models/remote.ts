@@ -12,4 +12,5 @@ export interface Remote {
 
     // ssh exclusive
     runCommand?: string;
+    privateKeyFile?: string;
 }
