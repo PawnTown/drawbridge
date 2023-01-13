@@ -42,17 +42,11 @@ fn get_os() -> String {
 
 #[tauri::command]
 fn create_shortcut(output: String, id: String) -> bool {
-    #[cfg(target_os = "unix")] {
-        return unix_create_shortcut(output, id);
-    }
-
-    #[cfg(target_os = "windows")] {
-        return win_create_shortcut(output, id);
-    }
+    return os_create_shortcut(output, id);
 }
 
 #[cfg(target_os = "unix")]
-fn unix_create_shortcut(output: String, id: String) -> bool {
+fn os_create_shortcut(output: String, id: String) -> bool {
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
@@ -70,7 +64,7 @@ fn unix_create_shortcut(output: String, id: String) -> bool {
 }
 
 #[cfg(target_os = "windows")]
-fn win_create_shortcut(output: String, id: String) -> bool {
+fn os_create_shortcut(output: String, id: String) -> bool {
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
