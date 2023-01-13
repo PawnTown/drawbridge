@@ -1,10 +1,7 @@
 <script lang="ts">
+  import { open } from '@tauri-apps/api/dialog';
   import FileDrop from 'svelte-tauri-filedrop'
 
-  function open(paths: string[]) {
-    // ...
-  }
-  
   export let value = '';
 
   let dragOverActive = false;
@@ -14,6 +11,15 @@
   };
   const remove = () => {
     value = "";
+  };
+  const search = async () => {
+    const selected = await open({
+      multiple: false,
+    });
+    
+    if (!Array.isArray(selected) && selected !== null) {
+      value = selected;
+    }
   };
   const onDragOver = () => {
     dragOverActive = true;
@@ -28,7 +34,10 @@
     {#if value === ""}
       <div class="placeholder">
         <div class="logo"></div>
-        <p>Drag-n-Drop a File</p>
+        <div class="text">
+          <p>Drop a File or</p>
+          <button on:click={search} class="search">browse</button>
+        </div>
       </div>
     {:else}
       <div class="file">
@@ -62,10 +71,37 @@
     height: 100%;
   }
 
-  .placeholder p{
+  .placeholder .text{
+    display: flex;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 1.2px;
+    margin: 0;
+    align-items: center;
+  }
+
+  .placeholder .search {
+    margin-left: 7px;
+    border: none;
+    color: #0e62e2;
+    background-color: rgba(14, 99, 226, 0.2);
+    border-radius: 7px;
+    height: 24px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+
+  .placeholder .search:hover {
+    color: #196dec;
+    background-color: rgba(65, 135, 240, 0.2)
+  }
+
+  .placeholder .search:active {
+    color: #1760ce;
+    background-color: rgba(34, 101, 202, 0.2)
+  }
+
+  .placeholder p {
     margin: 0;
   }
 
