@@ -66,42 +66,14 @@ fn os_create_shortcut(output: String, id: String) -> bool {
 
 #[cfg(target_family = "windows")]
 fn os_create_shortcut(output: String, id: String) -> bool {
-    use directories::ProjectDirs;
-    use fs::File;
-    use std::fs;
-    use std::io::Write;
-
     let exec_path;
     match env::current_exe() {
         Ok(exe_path) => exec_path = exe_path.display().to_string(),
         Err(_) =>  return false,
     };
 
-    let mut bat_file;
-    if let Some(proj_dirs) = ProjectDirs::from("im", "khad",  "drawbridge") {
-        bat_file = proj_dirs.data_local_dir().to_path_buf();
-        bat_file.push(format!("engine_{}.bat", id));
+    win_cmd::create_exe_file(output, exec_path, id).unwrap();
 
-        let file = File::create(bat_file.clone());
-        if let Err(_err) = file.unwrap().write_all(format!("{} connect {}", exec_path, id).as_bytes()) {
-            return false;
-        }
-    } else {
-        return false;
-    }
-
-    win_cmd::run_temp_script(
-        format!(
-            "
-Set oWS = WScript.CreateObject(\"WScript.Shell\")
-Set oLink = oWS.CreateShortcut(\"{}\")
-oLink.TargetPath = \"{}\"
-oLink.Arguments = \"connect {}\"
-oLink.IconLocation = \"{}, 0\"
-oLink.Save()
-        ", output, bat_file.to_string_lossy(), id, exec_path),
-        "mk_shortcut.vbs",
-    ).unwrap();
     return true;
 }
 
