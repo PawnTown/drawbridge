@@ -1,17 +1,10 @@
 <script lang="ts">
-  import { save } from '@tauri-apps/api/dialog';
-  import { invoke } from "@tauri-apps/api/tauri";
   import { fly, fade } from 'svelte/transition';
+  import { open } from '@tauri-apps/api/dialog';
   import { createEventDispatcher } from 'svelte';
-  import type { Remote } from '../models/remote';
-  import { GetStore } from '../services/storage';
-    import type { SettingsModel } from 'src/models/settings';
-
-  const store = GetStore();
+  import type { SettingsModel } from 'src/models/settings';
 
   export let settings: SettingsModel;
-
-  let deleteUIVisible = false;
 
   const dispatch = createEventDispatcher();
 
@@ -22,6 +15,21 @@
   const onClose = () => {
       dispatch("close");
   };
+
+  const browse = async () => {
+    const selected = await open({
+      multiple: false,
+      filters: [
+        {
+          name: 'Executable',
+          extensions: ['exe'],
+        },
+      ],
+    });
+    if (!Array.isArray(selected) && selected !== null) {
+      settings.csCompilerPath = selected;
+    }
+  }
 </script>
   
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -40,9 +48,10 @@
   <button class="cancel" on:click={onClose}></button>
   
   <div class="inner-wrap">
-    <div class="input-wrap prefix-icon label">
+    <div class="input-wrap file">
       <span>C#-Compiler Path</span>
-      <input type="text" autocorrect="off" autocapitalize="none" placeholder="My Awesome Cluster" bind:value={settings.csCompilerPath} />
+      <input type="text" autocorrect="off" autocapitalize="none" placeholder="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe" bind:value={settings.csCompilerPath} />
+      <button on:click={browse} class="browse">...</button>
     </div>
   </div>
 
@@ -145,6 +154,31 @@
   }
 
   button.submit:active {
+    background-color: #1065cb;
+  }
+
+  .input-wrap.file input {
+    padding-right: 60px;
+  }
+
+  .input-wrap.file button {
+    position: absolute;
+    right: 5px;
+    bottom: 6px;
+    width: 54px;
+    height: 33px;
+    border-radius: 9px;
+    border: none;
+    font-size: 18px;
+    background-color: #0175ff;
+    cursor: pointer;
+  }
+
+  .input-wrap.file button:hover {
+    background-color: #1d82ff;
+  }
+
+  .input-wrap.file button:active {
     background-color: #1065cb;
   }
 </style>

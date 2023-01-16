@@ -21,6 +21,7 @@
   };
 
   onMount(() => {
+    loadSettings();
 		reloadRemotes();
 	});
 
@@ -34,8 +35,9 @@
     });
   }
 
-  const saveSettings = async () => {
-    await store.set("settings", settings);
+  const saveSettings = async (newSettings: SettingsModel) => {
+    await store.set("settings", newSettings);
+    loadSettings();
   }
 
   let addRemoteVisible = false;
@@ -82,7 +84,7 @@
   <Settings
     settings={settings}
     on:close={() => settingsVisible = false}
-    on:success={(newSettings) => { settingsVisible = false; settings = newSettings; saveSettings(); }}
+    on:success={(e) => { settingsVisible = false; saveSettings(e.detail); }}
   />
 {/if}
 
