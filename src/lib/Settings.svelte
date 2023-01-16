@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
   import { open } from '@tauri-apps/api/dialog';
+  import shell from '@tauri-apps/api/shell';
   import { createEventDispatcher, onMount } from 'svelte';
   import type { SettingsModel } from 'src/models/settings';
   import { invoke } from '@tauri-apps/api/tauri';
@@ -56,7 +57,9 @@
   }
 
   const doUpdate = async () => {
-    try {
+    await shell.open('https://pawntown.github.io/drawbridge_web/');
+    // TODO: real updater
+    /*try {
       loading = true;
       // display dialog
       await installUpdate()
@@ -65,7 +68,7 @@
       loading = false;
     } catch (error) {
       console.log(error)
-    }
+    }*/
   }
 </script>
   
