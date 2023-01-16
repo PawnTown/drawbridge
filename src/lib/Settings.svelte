@@ -1,12 +1,12 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
   import { open } from '@tauri-apps/api/dialog';
-  import shell from '@tauri-apps/api/shell';
   import { createEventDispatcher, onMount } from 'svelte';
   import type { SettingsModel } from 'src/models/settings';
   import { invoke } from '@tauri-apps/api/tauri';
   import { checkUpdate, installUpdate } from '@tauri-apps/api/updater'
   import { relaunch } from '@tauri-apps/api/process'
+  import { OpenUrl } from '../services/open';
 
   export let settings: SettingsModel;
 
@@ -57,7 +57,7 @@
   }
 
   const doUpdate = async () => {
-    await shell.open('https://pawntown.github.io/drawbridge_web/');
+    await OpenUrl('https://pawntown.github.io/drawbridge_web/');
     // TODO: real updater
     /*try {
       loading = true;
