@@ -3,10 +3,11 @@ use std::path::Path;
 use std::process::Command;
 use regex::Regex;
 
-static CS_COMPILER: &str = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe";
-static ICON_PATH: &str = "C:\\Users\\khadi\\Documents\\GitHub\\drawbridge\\src-tauri\\icons\\icon.ico";
+mod asset;
 
-pub fn create_cs_file(name: String, exec_path: String, id: String) -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
+static CS_COMPILER: &str = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe";
+
+fn create_cs_file(name: String, exec_path: String, id: String) -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
     let re = Regex::new(r"([\\])").unwrap();
     let escaped_exec_path = re.replace_all(&exec_path, r"\$1");
 
@@ -66,6 +67,19 @@ class Program
     return Ok(tmp);
 }
 
+fn get_icon() -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
+    let mut tmp = std::env::temp_dir();
+    tmp.push("drawbridge_icon.ico");
+
+    let icon_data = asset::Asset::get("icon.ico").unwrap();
+
+    let mut file = std::fs::File::create(&tmp)?;
+    file.write_all(&icon_data.data)?;
+    file.sync_all()?;
+
+    return Ok(tmp);
+}
+
 pub fn compile_cs_file(exec_path: String, id: String, output: String) -> Result<(), Box<dyn std::error::Error>> {
     let outpath = Path::new(&output);
     let output_filename = outpath.file_name();
@@ -74,8 +88,11 @@ pub fn compile_cs_file(exec_path: String, id: String, output: String) -> Result<
     path_anc.next();
     let output_path = path_anc.next().unwrap().to_str().unwrap();
 
+    let icon = get_icon().unwrap();
+    let icon_path = icon.to_str().unwrap();
+
     let out = format!("-out:{}", output_filename.unwrap().to_str().unwrap());
-    let icon = format!("-win32icon:{}", ICON_PATH);
+    let icon = format!("-win32icon:{}", icon_path);
     println!("{}", output_path);
     println!("{}", out);
 
@@ -86,6 +103,7 @@ pub fn compile_cs_file(exec_path: String, id: String, output: String) -> Result<
         .current_dir(&output_path)
         .status();
 
+    std::fs::remove_file(icon_path)?;
     std::fs::remove_file(tmp)?;
 
     Ok(())
