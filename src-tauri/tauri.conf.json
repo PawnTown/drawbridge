@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "drawbridge",
-    "version": "0.0.2"
+    "version": "0.0.3"
   },
   "tauri": {
     "allowlist": {
@@ -63,7 +63,12 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+      "endpoints": [
+          "https://pawntown.github.io/drawbridge_web/update.json"
+      ],
+      "dialog": false,
+      "pubkey": "YOUR_UPDATER_SIGNATURE_PUBKEY_HERE"
     },
     "windows": [
       {

@@ -32,10 +32,12 @@
     let os: string = await invoke("get_os");
 
     const output = await save({
-      filters: [{
-        name: 'Image',
-        extensions: os === "win" ? ["lnk"] : ["", "sh"],
-      }]
+      filters: os === "win" ? [
+        { name: 'Executable', extensions: ['exe'] },
+        { name: 'Shortcut', extensions: ['lnk'] }
+      ] : [
+        { name: 'Bash-Script', extensions: ['sh'] },
+      ]
     });
 
     let result : boolean = await invoke("create_shortcut", {

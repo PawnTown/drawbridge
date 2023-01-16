@@ -55,7 +55,7 @@
   height: 18px;
   background-size: contain;
   background-repeat: no-repeat;
-  background-image: url(./remote.svg);
+  background-image: url(/remote.svg);
   filter: invert(1);
 }
 
@@ -101,7 +101,7 @@
   width: 16px;
   background-size: contain;
   background-repeat: no-repeat;
-  background-image: url(./add.svg);
+  background-image: url(/add.svg);
   filter: invert(1);
 }
 </style>
