@@ -68,7 +68,7 @@
           "https://pawntown.github.io/drawbridge_web/update.json"
       ],
       "dialog": false,
-      "pubkey": "YOUR_UPDATER_SIGNATURE_PUBKEY_HERE"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY4MjIzQzI1MzIwRDNCRUEKUldUcU93MHlKVHdpYU56bHl0TXFvdEUyQmdlVkc3a3FuWWNjVlB1cHNKZVFYek1MUkViSG5WUC8K"
     },
     "windows": [
       {
