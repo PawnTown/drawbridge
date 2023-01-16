@@ -3,13 +3,17 @@
   import { open } from '@tauri-apps/api/dialog';
   import { createEventDispatcher, onMount } from 'svelte';
   import type { SettingsModel } from 'src/models/settings';
-    import { invoke } from '@tauri-apps/api/tauri';
+  import { invoke } from '@tauri-apps/api/tauri';
+  import { checkUpdate, installUpdate } from '@tauri-apps/api/updater'
+  import { relaunch } from '@tauri-apps/api/process'
 
   export let settings: SettingsModel;
 
   const dispatch = createEventDispatcher();
 
   let os: string = "";
+  let updateAvailable = false;
+  let loading = false;
 
   onMount(() => {
     (async () => {
@@ -39,6 +43,30 @@
       settings.csCompilerPath = selected;
     }
   }
+
+  const checkForUpdates = async () => {
+    try {
+      loading = true;
+      const { shouldUpdate, manifest } = await checkUpdate()
+      updateAvailable = shouldUpdate
+      loading = false;
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const doUpdate = async () => {
+    try {
+      loading = true;
+      // display dialog
+      await installUpdate()
+      // install complete, restart the app
+      await relaunch()
+      loading = false;
+    } catch (error) {
+      console.log(error)
+    }
+  }
 </script>
   
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -58,9 +86,21 @@
   
   <div class="inner-wrap">
     <div class="update-card">
-      <h2>🤘🏽DrawBridge is up to date!</h2>
-      <p>DrawBridge is currently up to date. Check back later for updates.</p>
-      <button on:click={browse} class="check-for-updates">Check for updates</button>
+      {#if updateAvailable}
+        <h2>🔥New Update Available!</h2>
+        <p>Your DrawBridge Version is outdated. Update now to get the newest features and fixes.</p>
+        <div class="button-wrap">
+          <button on:click={doUpdate} class="install-update">{!loading ? "♻️ Install Update" : "..."}</button>
+        </div>
+      {/if}
+
+      {#if !updateAvailable}
+        <h2>🤘🏽DrawBridge is up to date!</h2>
+        <p>DrawBridge is currently up to date. Check back later for updates.</p>
+        <div class="button-wrap">
+          <button on:click={checkForUpdates} class="check-for-updates">{!loading ? "Check for updates" : "..."}</button>
+        </div>
+      {/if}
     </div>
 
     {#if os === "win"}
@@ -225,14 +265,15 @@
 
   .update-card p {
     font-size: 14px;
+    color: rgb(194, 194, 194);
     margin: 0;
     padding: 0;
-    margin-top: 4px;
+    margin: 4px 0 0 0;
   }
 
   button.check-for-updates {
     height: 33px;
-    padding: 0 16px;
+    width: 200px;
     margin-top: 12px;
     border-radius: 9px;
     border: none;
@@ -247,5 +288,31 @@
 
   button.check-for-updates:active {
     background-color: #1065cb;
+  }
+
+  button.install-update {
+    height: 33px;
+    width: 200px;
+    margin-top: 12px;
+    border-radius: 9px;
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    background-color: rgb(34, 109, 90);
+    cursor: pointer;
+  }
+
+  button.install-update:hover {
+    background-color: rgb(48, 134, 113);
+  }
+
+  button.install-update:active {
+    background-color: rgb(27, 94, 77);
+  }
+
+  .button-wrap {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
   }
 </style>
