@@ -10,7 +10,6 @@ use crate::storage;
 mod asset;
 
 static NET_FRAMEWORK_PATH: &str = "C:\\Windows\\Microsoft.NET\\Framework";
-static CS_COMPILER: &str = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe";
 
 fn get_cs_compiler_path() -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
     let data_res = storage::load("settings".to_string());
