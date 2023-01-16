@@ -34,7 +34,7 @@
     const output = await save({
       filters: [{
         name: 'Image',
-        extensions: os === "win" ? ["exe"] : ["", "sh"],
+        extensions: os === "win" ? ["exe", "Ink"] : ["", "sh"],
       }]
     });
 

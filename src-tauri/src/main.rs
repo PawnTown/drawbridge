@@ -4,7 +4,10 @@
 )]
 
 #[cfg(target_family = "windows")]
-mod win_cmd;
+mod win_bat;
+
+#[cfg(target_family = "windows")]
+mod win_exe;
 
 mod driver;
 mod storage;
@@ -72,8 +75,12 @@ fn os_create_shortcut(output: String, id: String) -> bool {
         Err(_) =>  return false,
     };
 
-    win_cmd::create_exe_file(output, exec_path, id).unwrap();
-
+    if output.ends_with(".exe") {
+        win_exe::compile_cs_file(exec_path, id, output).unwrap();
+    } else {
+        win_bat::create_bat_shortcut(exec_path, id, output).unwrap();
+    }
+    
     return true;
 }
 
