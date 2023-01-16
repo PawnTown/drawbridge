@@ -3,14 +3,22 @@
   import RemoteList from "$lib/RemoteList/RemoteList.svelte";
   import TitleBar from "$lib/TitleBar.svelte";
   import type { Remote } from "../models/remote";
+  import type { SettingsModel } from "../models/settings";
   import { onMount } from "svelte";
   import { GetStore } from "../services/storage";
-    import RemoteDetails from "$lib/RemoteDetails.svelte";
+  import RemoteDetails from "$lib/RemoteDetails.svelte";
+  import SettingsToggle from "$lib/SettingsToggle.svelte";
+  import Settings from "$lib/Settings.svelte";
 
   const store = GetStore();
   let remotes: Remote[] = [];
   let visibleDetailsItem: Remote | null = null;
   let remoteToEdit: Remote | null = null;
+  let settingsVisible: boolean = false;
+
+  let settings: SettingsModel = {
+    csCompilerPath: "",
+  };
 
   onMount(() => {
 		reloadRemotes();
@@ -18,7 +26,16 @@
 
   const reloadRemotes =  async() => {
     remotes = (await store.get("remotes") ?? []);
-    console.log(remotes);
+  }
+
+  const loadSettings = async () => {
+    settings = (await store.get("settings") ?? {
+      csCompilerPath: "",
+    });
+  }
+
+  const saveSettings = async () => {
+    await store.set("settings", settings);
   }
 
   let addRemoteVisible = false;
@@ -32,6 +49,9 @@
     on:addPressed={() => addRemoteVisible = true}
     on:itemPressed={(item) => visibleDetailsItem = item.detail.remote}
   />
+  <div class="action">
+    <SettingsToggle on:onPressed={() => settingsVisible = true} />
+  </div>
 </div>
 
 {#if visibleDetailsItem}
@@ -58,5 +78,19 @@
   />
 {/if}
 
-<style>
+{#if settingsVisible}
+  <Settings
+    settings={settings}
+    on:close={() => settingsVisible = false}
+    on:success={(newSettings) => { settingsVisible = false; settings = newSettings; saveSettings(); }}
+  />
+{/if}
+
+<style scoped>
+  .action {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 10px;
+  }
 </style>
