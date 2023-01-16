@@ -59,7 +59,7 @@ fn os_create_shortcut(output: String, id: String) -> bool {
 
     let file = File::create(output.clone());
 
-    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n{} connect {}", exec_path, id).as_bytes()) {
+    if let Err(_err) = file.unwrap().write_all(format!("#!/bin/sh\n\"{}\" connect {}", exec_path, id).as_bytes()) {
         return false;
     }
 
