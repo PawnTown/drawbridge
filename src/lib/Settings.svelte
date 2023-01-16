@@ -93,9 +93,9 @@
 
   .inner-wrap {
     position: relative;
-    padding: 20px;
+    margin: 20px;
     box-sizing: border-box;
-    width: 100%;
+    width: calc(100% - 40px);
   }
 
   input {
