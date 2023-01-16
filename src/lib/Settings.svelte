@@ -1,12 +1,21 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
   import { open } from '@tauri-apps/api/dialog';
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import type { SettingsModel } from 'src/models/settings';
+    import { invoke } from '@tauri-apps/api/tauri';
 
   export let settings: SettingsModel;
 
   const dispatch = createEventDispatcher();
+
+  let os: string = "";
+
+  onMount(() => {
+    (async () => {
+      os = await invoke("get_os");
+    })();
+  });
 
   const success = () => {
       dispatch("success", settings);
@@ -48,14 +57,24 @@
   <button class="cancel" on:click={onClose}></button>
   
   <div class="inner-wrap">
+    <div class="update-card">
+      <h2>🤘🏽DrawBridge is up to date!</h2>
+      <p>DrawBridge is currently up to date. Check back later for updates.</p>
+      <button on:click={browse} class="check-for-updates">Check for updates</button>
+    </div>
+
+    {#if os === "win"}
     <div class="input-wrap file">
       <span>C#-Compiler Path</span>
       <input type="text" autocorrect="off" autocapitalize="none" placeholder="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe" bind:value={settings.csCompilerPath} />
       <button on:click={browse} class="browse">...</button>
     </div>
+    {/if}
   </div>
 
-  <button class="submit" on:click={success}>Save</button>
+  <div>
+    <button class="submit" on:click={success}>Save</button>
+  </div>
 </div>
 
 <style>
@@ -79,7 +98,10 @@
   }
 
   .dialog.details {
-    height: 390px;
+    height: 480px;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
   }
 
   .cancel {
@@ -179,6 +201,51 @@
   }
 
   .input-wrap.file button:active {
+    background-color: #1065cb;
+  }
+
+  .update-card {
+    position: relative;
+    width: 100%;
+    background-color: #272b30;
+    border-radius: 12px;
+    padding: 16px;
+    box-sizing: border-box;
+    text-align: left;
+    flex-grow: 0;
+    margin: 14px 0 24px 0;
+  }
+
+  .update-card h2 {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+  }
+
+  .update-card p {
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+    margin-top: 4px;
+  }
+
+  button.check-for-updates {
+    height: 33px;
+    padding: 0 16px;
+    margin-top: 12px;
+    border-radius: 9px;
+    border: none;
+    font-size: 12px;
+    background-color: #0175ff;
+    cursor: pointer;
+  }
+
+  button.check-for-updates:hover {
+    background-color: #1d82ff;
+  }
+
+  button.check-for-updates:active {
     background-color: #1065cb;
   }
 </style>
