@@ -7,6 +7,7 @@
   import { checkUpdate, installUpdate } from '@tauri-apps/api/updater'
   import { relaunch } from '@tauri-apps/api/process'
   import { OpenUrl } from '../services/open';
+  import CheckBox from './CheckBox.svelte';
 
   export let settings: SettingsModel;
 
@@ -106,6 +107,15 @@
       {/if}
     </div>
 
+    {#if os === "win"}
+    <div class="input-wrap file">
+      <span>Custom C#-Compiler Path</span>
+      <input type="text" autocorrect="off" autocapitalize="none" placeholder="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe" bind:value={settings.csCompilerPath} />
+      <button on:click={browse} class="browse">...</button>
+    </div>
+    {/if}
+
+    <CheckBox title="Enable Logs" value={true} />
     {#if os === "win"}
     <div class="input-wrap file">
       <span>C#-Compiler Path</span>
