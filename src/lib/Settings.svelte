@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
-  import { open } from '@tauri-apps/api/dialog';
+  import { open, save } from '@tauri-apps/api/dialog';
   import { createEventDispatcher, onMount } from 'svelte';
   import type { SettingsModel } from 'src/models/settings';
   import { invoke } from '@tauri-apps/api/tauri';
@@ -43,6 +43,20 @@
     });
     if (!Array.isArray(selected) && selected !== null) {
       settings.csCompilerPath = selected;
+    }
+  }
+
+  const browseSave = async () => {
+    const selected = await save({
+      filters: [
+        {
+          name: 'Textfile',
+          extensions: ['txt'],
+        },
+      ],
+    });
+    if (selected !== null) {
+      settings.logFile = selected;
     }
   }
 
@@ -107,18 +121,15 @@
       {/if}
     </div>
 
-    {#if os === "win"}
-    <div class="input-wrap file">
-      <span>Custom C#-Compiler Path</span>
-      <input type="text" autocorrect="off" autocapitalize="none" placeholder="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe" bind:value={settings.csCompilerPath} />
-      <button on:click={browse} class="browse">...</button>
+    <div class="input-wrap file" class:disabled={!settings.enableLogs}>
+      <CheckBox title="Enable Logs" bind:value={settings.enableLogs} />
+      <input disabled={!settings.enableLogs} type="text" autocorrect="off" autocapitalize="none" placeholder={os === "win" ? "C:\\Users\\Joe\\Desktop\\log.txt" : "/Users/joe/Desktop/log.txt"} bind:value={settings.logFile} />
+      <button disabled={!settings.enableLogs} on:click={browseSave} class="browse">...</button>
     </div>
-    {/if}
 
-    <CheckBox title="Enable Logs" value={true} />
-    {#if os === "win"}
-    <div class="input-wrap file">
-      <span>C#-Compiler Path</span>
+    {#if os !== "win"}
+    <div class="input-wrap label file">
+      <span>Custom C#-Compiler Path</span>
       <input type="text" autocorrect="off" autocapitalize="none" placeholder="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe" bind:value={settings.csCompilerPath} />
       <button on:click={browse} class="browse">...</button>
     </div>
@@ -200,7 +211,10 @@
   .input-wrap {
     position: relative;
     width: 100%;
-    margin: 7px 0;
+    margin: 14px 0;
+  }
+
+  .input-wrap.label {
     padding-top: 24px;
   }
 
@@ -211,6 +225,10 @@
     top: 0;
     font-size: 14px;
     color: #62666b;
+  }
+
+  .input-wrap.disabled input {
+    opacity: 0.4;
   }
 
   button.submit {
@@ -257,6 +275,20 @@
     background-color: #1065cb;
   }
 
+  .input-wrap.disabled.file button {
+    background-color: rgba(98, 102, 107, 1);
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .input-wrap.disabled.file button:hover {
+    background-color: rgba(98, 102, 107, 1);
+  }
+
+  .input-wrap.disabled.file button:active {
+    background-color: rgba(98, 102, 107, 1);
+  }
+
   .update-card {
     position: relative;
     width: 100%;
@@ -266,7 +298,7 @@
     box-sizing: border-box;
     text-align: left;
     flex-grow: 0;
-    margin: 14px 0 24px 0;
+    margin: 14px 0 0 0;
   }
 
   .update-card h2 {
