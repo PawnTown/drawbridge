@@ -11,6 +11,7 @@ mod win_exe;
 
 mod driver;
 mod storage;
+mod logger;
 use std::env;
 
 #[tauri::command]
@@ -112,7 +113,8 @@ async fn start_bridge(args: Vec<String>) -> Result<(), Box<dyn std::error::Error
     let driver = driver::get_driver(args[1].clone());
 
     if driver.is_some() {
-        return driver.unwrap().run(args).await;
+        // Todo: add logger initialization
+        return driver.unwrap().run(args, None).await;
     }
 
     println!("Invalid driver name. Please use ptcec or ssh.");

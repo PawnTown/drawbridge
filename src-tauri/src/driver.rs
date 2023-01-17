@@ -1,12 +1,14 @@
 use async_trait::async_trait;
 
+use crate::logger;
+
 pub mod connect;
 pub mod ssh;
 pub mod ptcec;
 
 #[async_trait]
 pub trait Driver {
-    async fn run(&self, args: Vec<String>) -> Result<(), Box<dyn std::error::Error>>;
+    async fn run(&self, args: Vec<String>, log: Option<logger::Logger>) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 pub fn get_driver(driver_name: String) -> Option<Box<dyn Driver>> {

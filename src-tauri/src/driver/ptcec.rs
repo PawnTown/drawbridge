@@ -14,13 +14,15 @@ pub mod proto {
     tonic::include_proto!("proto");
 }
 
+use crate::logger;
+
 use super::Driver;
 
 pub struct PtcecDriver {}
 
 #[async_trait]
 impl Driver for PtcecDriver {
-    async fn run(&self, args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
+    async fn run(&self, args: Vec<String>, logger: Option<logger::Logger>) -> Result<(), Box<dyn std::error::Error>> {
         if args.len() != 6 {
             println!("Invalid number of arguments. Please use: drawbridge ptcec <url> <engine> <mode> <token>");
             std::process::exit(1);
