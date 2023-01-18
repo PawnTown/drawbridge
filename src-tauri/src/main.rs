@@ -11,7 +11,9 @@ mod win_exe;
 
 mod driver;
 mod storage;
-use std::env;
+mod settings;
+mod logger;
+use std::{env, time::SystemTime};
 
 #[tauri::command]
 fn load_data(key: String) -> String {
@@ -106,13 +108,46 @@ fn start_tauri() {
         .expect("error while running tauri application");
 }
 
+fn get_logger() -> Option<logger::Logger> {
+    use std::path::Path;
+    use rand::distributions::{Alphanumeric, DistString};
+
+    let logs_enabled = settings::get_setting_bool("enableLogs".to_string());
+    if logs_enabled.is_none() || logs_enabled == Some(false) {
+        return None;
+    }
+
+    match settings::get_setting_str("logFile".to_string()) {
+        Some(mut path) => {
+            if path.eq("") {
+                return None;
+            }
+
+            let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
+            path = path.replace("{rnd}", &Alphanumeric.sample_string(&mut rand::thread_rng(), 6));
+            path = path.replace("{ts}", &format!("{}", ts.as_nanos()));
+
+            let path = Path::new(&path);
+            match logger::Logger::new(path.to_path_buf()) {
+                Ok(logger) => Some(logger),
+                Err(_) => None
+            }
+        },
+        None => {
+            return None;
+        }
+    }
+}
+
 // Starts the bridge cli
 #[tokio::main]
 async fn start_bridge(args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
     let driver = driver::get_driver(args[1].clone());
+    let logger: Option<logger::Logger> = get_logger();
 
     if driver.is_some() {
-        return driver.unwrap().run(args).await;
+        // Todo: add logger initialization
+        return driver.unwrap().run(args, logger).await;
     }
 
     println!("Invalid driver name. Please use ptcec or ssh.");

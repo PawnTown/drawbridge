@@ -17,6 +17,8 @@
   let settingsVisible: boolean = false;
 
   let settings: SettingsModel = {
+    enableLogs: false,
+    logFile: "log.txt",
     csCompilerPath: "",
   };
 

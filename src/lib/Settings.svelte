@@ -1,12 +1,13 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
-  import { open } from '@tauri-apps/api/dialog';
+  import { open, save } from '@tauri-apps/api/dialog';
   import { createEventDispatcher, onMount } from 'svelte';
   import type { SettingsModel } from 'src/models/settings';
   import { invoke } from '@tauri-apps/api/tauri';
   import { checkUpdate, installUpdate } from '@tauri-apps/api/updater'
   import { relaunch } from '@tauri-apps/api/process'
   import { OpenUrl } from '../services/open';
+  import CheckBox from './CheckBox.svelte';
 
   export let settings: SettingsModel;
 
@@ -42,6 +43,20 @@
     });
     if (!Array.isArray(selected) && selected !== null) {
       settings.csCompilerPath = selected;
+    }
+  }
+
+  const browseSave = async () => {
+    const selected = await save({
+      filters: [
+        {
+          name: 'Textfile',
+          extensions: ['txt'],
+        },
+      ],
+    });
+    if (selected !== null) {
+      settings.logFile = selected;
     }
   }
 
@@ -106,9 +121,27 @@
       {/if}
     </div>
 
+    <div class="input-wrap file" class:disabled={!settings.enableLogs}>
+      <div class="split">
+        <CheckBox title="Enable Logs" bind:value={settings.enableLogs} />
+        <div class="question">
+          <div class="logo"></div>
+          <div class="content">
+            <h3>Placeholder</h3>
+            <ul>
+              <li><b>&#123;rnd&#125;</b> Random Generated String</li>
+              <li><b>&#123;ts&#125;</b> Timestamp (Nanosecond)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <input disabled={!settings.enableLogs} type="text" autocorrect="off" autocapitalize="none" placeholder={os === "win" ? "C:\\Users\\Joe\\Desktop\\log.txt" : "/Users/joe/Desktop/log.txt"} bind:value={settings.logFile} />
+      <button disabled={!settings.enableLogs} on:click={browseSave} class="browse">...</button>
+    </div>
+
     {#if os === "win"}
-    <div class="input-wrap file">
-      <span>C#-Compiler Path</span>
+    <div class="input-wrap label file">
+      <span>Custom C#-Compiler Path</span>
       <input type="text" autocorrect="off" autocapitalize="none" placeholder="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe" bind:value={settings.csCompilerPath} />
       <button on:click={browse} class="browse">...</button>
     </div>
@@ -190,7 +223,10 @@
   .input-wrap {
     position: relative;
     width: 100%;
-    margin: 7px 0;
+    margin: 14px 0;
+  }
+
+  .input-wrap.label {
     padding-top: 24px;
   }
 
@@ -201,6 +237,10 @@
     top: 0;
     font-size: 14px;
     color: #62666b;
+  }
+
+  .input-wrap.disabled input {
+    opacity: 0.4;
   }
 
   button.submit {
@@ -228,10 +268,10 @@
 
   .input-wrap.file button {
     position: absolute;
-    right: 5px;
-    bottom: 6px;
+    right: 3px;
+    bottom: 3px;
     width: 54px;
-    height: 33px;
+    height: 34px;
     border-radius: 9px;
     border: none;
     font-size: 18px;
@@ -247,6 +287,20 @@
     background-color: #1065cb;
   }
 
+  .input-wrap.disabled.file button {
+    background-color: rgba(98, 102, 107, 1);
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .input-wrap.disabled.file button:hover {
+    background-color: rgba(98, 102, 107, 1);
+  }
+
+  .input-wrap.disabled.file button:active {
+    background-color: rgba(98, 102, 107, 1);
+  }
+
   .update-card {
     position: relative;
     width: 100%;
@@ -256,7 +310,7 @@
     box-sizing: border-box;
     text-align: left;
     flex-grow: 0;
-    margin: 14px 0 24px 0;
+    margin: 14px 0 0 0;
   }
 
   .update-card h2 {
@@ -317,5 +371,73 @@
     margin-top: 12px;
     display: flex;
     justify-content: center;
+  }
+
+  .split {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .question {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .question:hover {
+    background: #272b30;
+  }
+
+  .question .content {
+    position: absolute;
+    top: -42px;
+    right: 32px;
+    background: rgb(22, 20, 20);
+    text-align: left;
+    font-size: 12px;
+    z-index: 2;
+    border-radius: 12px;
+    border: 4px solid rgba(135, 189, 255, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(14px);
+    transition: cubic-bezier(0.215, 0.610, 0.355, 1) 0.2s;
+  }
+
+  .question .content h3 {
+    padding: 12px;
+    background: #0175ff;
+    border-radius: 9px 9px 0 0;
+    margin: 0;
+  }
+
+  .question .content ul {
+    list-style: none;
+    margin: 0;
+    padding: 12px 24px;
+  }
+
+  .question .content ul li::before {
+    content: "-";
+    color: #0175ff;
+    font-weight: bold;
+    font-size: 16px;
+    padding-right: 7px;
+  }
+
+  .question:hover .content {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .question .logo {
+    width: 100%;
+    height: 100%;
+    background-image: url(/question.svg);
+    background-size: contain;
+    background-position: center center;
+    filter: invert(1) brightness(0.6);
   }
 </style>
