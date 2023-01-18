@@ -256,10 +256,10 @@
 
   .input-wrap.file button {
     position: absolute;
-    right: 5px;
-    bottom: 6px;
+    right: 3px;
+    bottom: 3px;
     width: 54px;
-    height: 33px;
+    height: 34px;
     border-radius: 9px;
     border: none;
     font-size: 18px;

@@ -16,6 +16,7 @@ export let value = false;
     align-items: center;
     border: none;
     cursor: pointer;
+    margin-bottom: 7px;
   }
 
   .checkbox-wrap span {
@@ -35,8 +36,8 @@ export let value = false;
     background: transparent;
     border: 1px solid #74787e;
     overflow: hidden;
-    height: 24px;
-    width: 24px;
+    height: 22px;
+    width: 22px;
     border-radius: 7px;
     transform: rotate(45deg);
     transition: cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s;

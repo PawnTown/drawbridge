@@ -79,7 +79,9 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
 
             let mut guard = logger_ptr_a.lock().await; {
                 if guard.is_some() {
-                    if guard.as_mut().unwrap().debug_outgoing(&line.clone()).is_err() {/* ignored */}
+                    let mut logline = line.clone();
+                    logline.pop();
+                    if guard.as_mut().unwrap().debug_outgoing(&logline).is_err() {/* ignored */}
                 }
                 drop(guard);
             }

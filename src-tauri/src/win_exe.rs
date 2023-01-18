@@ -2,7 +2,6 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 use regex::Regex;
-use serde_json::Value;
 use std::fs;
 use std::fs::metadata;
 use crate::settings;
@@ -18,7 +17,7 @@ fn get_cs_compiler_path() -> Result<std::path::PathBuf, Box<dyn std::error::Erro
                 return try_find_cs_compiler();
             }
 
-            let path = Path::new(path);
+            let path = Path::new(&path);
             if path.exists() {
                 return Ok(path.to_path_buf());
             }
