@@ -51,13 +51,11 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
     // Logger
     let logger_o_ptr = Arc::new(Mutex::new(logger));
     let logger_ptr_a = Arc::clone(&logger_o_ptr);
-    let logger_ptr_b = Arc::clone(&logger_o_ptr);
-    let logger_ptr_c = Arc::clone(&logger_o_ptr);
 
     // Initialize
-    let mut guard = logger_ptr_c.lock().await; {
+    let mut guard = logger_ptr_a.lock().await; {
         if guard.is_some() {
-            if guard.as_mut().unwrap().debug_info(&format!("Initialize with Engine={} Mode={} SessionId={}", &engine, &mode, &session_id).to_string()).is_err() {/* ignored */}
+            if guard.as_mut().unwrap().debug_info(&format!("Initialize PTCEC with Engine={} Mode={} SessionId={}", &engine, &mode, &session_id).to_string()).is_err() {/* ignored */}
         }
         drop(guard);
     }
@@ -70,12 +68,25 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
     };
     tx.send(init_req).await.unwrap();
 
+    
+    let logger_ptr_b = Arc::clone(&logger_o_ptr);
     tokio::spawn(async move {
         let stdin = stdin();
         let mut reader = BufReader::new(stdin);
         let mut line = String::new();
         loop {
-            reader.read_line(&mut line).await.unwrap();
+            match reader.read_line(&mut line).await {
+                Err(e) => {
+                    let mut guard = logger_ptr_b.lock().await; {
+                        if guard.is_some() {
+                            if guard.as_mut().unwrap().debug_error(&format!("Failed to read stdin: {}", e)).is_err() {/* ignored */}
+                        }
+                        drop(guard);
+                    };
+                    break;
+                },
+                _ => (),
+            }
 
             let mut guard = logger_ptr_a.lock().await; {
                 if guard.is_some() {
@@ -86,9 +97,20 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
                 drop(guard);
             }
             
-            tx.send(StreamEngineRequest {
+            match tx.send(StreamEngineRequest {
                 data: Some(stream_engine_request::Data::Stdin(line.as_bytes().to_vec())),
-            }).await.unwrap();
+            }).await {
+                Err(e) => {
+                    let mut guard = logger_ptr_b.lock().await; {
+                        if guard.is_some() {
+                            if guard.as_mut().unwrap().debug_error(&format!("Failed to send to remote: {}", e)).is_err() {/* ignored */}
+                        }
+                        drop(guard);
+                    };
+                    break;
+                },
+                _ => (),
+            }
             line.clear();
         }
     });
@@ -99,20 +121,27 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
         .await
         .unwrap()
         .into_inner();
-
-
+        
+    let logger_ptr_c = Arc::clone(&logger_o_ptr);
     while let Some(item) = stream.next().await {
         match str::from_utf8(item.unwrap().stdout.as_ref()) {
             Ok(v) => {
-                let mut guard = logger_ptr_b.lock().await; {
-                    if guard.is_some() {
-                        if guard.as_mut().unwrap().debug_incomming(&v.clone()).is_err() {/* ignored */}
-                    }
-                    drop(guard);
+                let mut guard = logger_ptr_c.lock().await;
+                if guard.is_some() {
+                    if guard.as_mut().unwrap().debug_incomming(&v.clone()).is_err() {/* ignored */}
                 }
+                drop(guard);
                 println!("{}", v)
             },
-            Err(_) => {/* ignored */},
+            Err(e) => {
+                let mut guard = logger_ptr_c.lock().await; {
+                    if guard.is_some() {
+                        if guard.as_mut().unwrap().debug_error(&format!("Failed to parse stdout: {}", e)).is_err() {/* ignored */}
+                    }
+                    drop(guard);
+                };
+                break;
+            },
         };
     }
 

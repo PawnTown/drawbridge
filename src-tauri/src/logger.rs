@@ -24,6 +24,10 @@ impl Logger {
     pub fn debug_info(&mut self, message: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.write(&format!("|i| {}", message))
     }
+     
+    pub fn debug_error(&mut self, message: &str) -> Result<(), Box<dyn std::error::Error>> {
+        self.write(&format!("|!| {}", message))
+    }
 
     fn write(&mut self, line: &str) -> Result<(), Box<dyn std::error::Error>> {
         use std::io::Write;
