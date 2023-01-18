@@ -13,7 +13,7 @@ mod driver;
 mod storage;
 mod settings;
 mod logger;
-use std::env;
+use std::{env, time::SystemTime};
 
 #[tauri::command]
 fn load_data(key: String) -> String {
@@ -110,6 +110,7 @@ fn start_tauri() {
 
 fn get_logger() -> Option<logger::Logger> {
     use std::path::Path;
+    use rand::distributions::{Alphanumeric, DistString};
 
     let logs_enabled = settings::get_setting_bool("enableLogs".to_string());
     if logs_enabled.is_none() || logs_enabled == Some(false) {
@@ -117,10 +118,14 @@ fn get_logger() -> Option<logger::Logger> {
     }
 
     match settings::get_setting_str("logFile".to_string()) {
-        Some(path) => {
+        Some(mut path) => {
             if path.eq("") {
                 return None;
             }
+
+            let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
+            path = path.replace("{rnd}", &Alphanumeric.sample_string(&mut rand::thread_rng(), 6));
+            path = path.replace("{ts}", &format!("{}", ts.as_nanos()));
 
             let path = Path::new(&path);
             match logger::Logger::new(path.to_path_buf()) {

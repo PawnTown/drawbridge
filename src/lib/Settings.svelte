@@ -122,12 +122,24 @@
     </div>
 
     <div class="input-wrap file" class:disabled={!settings.enableLogs}>
-      <CheckBox title="Enable Logs" bind:value={settings.enableLogs} />
+      <div class="split">
+        <CheckBox title="Enable Logs" bind:value={settings.enableLogs} />
+        <div class="question">
+          <div class="logo"></div>
+          <div class="content">
+            <h3>Placeholder</h3>
+            <ul>
+              <li><b>&#123;rnd&#125;</b> Random Generated String</li>
+              <li><b>&#123;ts&#125;</b> Timestamp (Nanosecond)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <input disabled={!settings.enableLogs} type="text" autocorrect="off" autocapitalize="none" placeholder={os === "win" ? "C:\\Users\\Joe\\Desktop\\log.txt" : "/Users/joe/Desktop/log.txt"} bind:value={settings.logFile} />
       <button disabled={!settings.enableLogs} on:click={browseSave} class="browse">...</button>
     </div>
 
-    {#if os !== "win"}
+    {#if os === "win"}
     <div class="input-wrap label file">
       <span>Custom C#-Compiler Path</span>
       <input type="text" autocorrect="off" autocapitalize="none" placeholder="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe" bind:value={settings.csCompilerPath} />
@@ -359,5 +371,73 @@
     margin-top: 12px;
     display: flex;
     justify-content: center;
+  }
+
+  .split {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .question {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .question:hover {
+    background: #272b30;
+  }
+
+  .question .content {
+    position: absolute;
+    top: -42px;
+    right: 32px;
+    background: rgb(22, 20, 20);
+    text-align: left;
+    font-size: 12px;
+    z-index: 2;
+    border-radius: 12px;
+    border: 4px solid rgba(135, 189, 255, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(14px);
+    transition: cubic-bezier(0.215, 0.610, 0.355, 1) 0.2s;
+  }
+
+  .question .content h3 {
+    padding: 12px;
+    background: #0175ff;
+    border-radius: 9px 9px 0 0;
+    margin: 0;
+  }
+
+  .question .content ul {
+    list-style: none;
+    margin: 0;
+    padding: 12px 24px;
+  }
+
+  .question .content ul li::before {
+    content: "-";
+    color: #0175ff;
+    font-weight: bold;
+    font-size: 16px;
+    padding-right: 7px;
+  }
+
+  .question:hover .content {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .question .logo {
+    width: 100%;
+    height: 100%;
+    background-image: url(/question.svg);
+    background-size: contain;
+    background-position: center center;
+    filter: invert(1) brightness(0.6);
   }
 </style>

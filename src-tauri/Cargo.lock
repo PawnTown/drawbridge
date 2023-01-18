@@ -629,6 +629,7 @@ dependencies = [
  "futures",
  "humantime",
  "prost",
+ "rand 0.8.5",
  "regex",
  "rust-embed",
  "serde",
