@@ -5,43 +5,30 @@ use regex::Regex;
 use serde_json::Value;
 use std::fs;
 use std::fs::metadata;
-use crate::storage;
+use crate::settings;
 
 mod asset;
 
 static NET_FRAMEWORK_PATH: &str = "C:\\Windows\\Microsoft.NET\\Framework";
 
 fn get_cs_compiler_path() -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
-    let data_res = storage::load("settings".to_string());
-    match data_res {
-        Ok(data) => {
-            let settings: Value = serde_json::from_str(&data).unwrap();
-
-            let custom_cs_compiler_path = settings["csCompilerPath"].as_str();
-            match custom_cs_compiler_path {
-                Some(path) => {
-                    if path.eq("") {
-                        return try_find_cs_compiler();
-                    }
-
-                    let path = Path::new(path);
-                    if path.exists() {
-                        return Ok(path.to_path_buf());
-                    }
-                    println!("{}", path.to_string_lossy());
-                    return Err("Custom c# compiler does not exists.".into());
-                },
-                None => {
-                    return try_find_cs_compiler();
-                }
+    match settings::get_setting_str("csCompilerPath".to_string()) {
+        Some(path) => {
+            if path.eq("") {
+                return try_find_cs_compiler();
             }
-        },
 
-        Err(_) => {
+            let path = Path::new(path);
+            if path.exists() {
+                return Ok(path.to_path_buf());
+            }
+            println!("{}", path.to_string_lossy());
+            return Err("Custom c# compiler does not exists.".into());
+        },
+        None => {
             return try_find_cs_compiler();
         }
     }
-    
 }
 
 fn try_find_cs_compiler() -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
