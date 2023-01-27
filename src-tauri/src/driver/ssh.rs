@@ -107,7 +107,7 @@ async fn start_ssh_driver(host: String, run_command: String, private_key_file: S
                             drop(guard);
                         };
 
-                        if oline != "" && line == "" {
+                        if !oline.eq("") && line.eq("") {
                             let mut guard = logger_ptr_a.lock().await; {
                                 if guard.is_some() {
                                     if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_out]: {}", oline)).is_err() {/* ignored */}
@@ -115,6 +115,13 @@ async fn start_ssh_driver(host: String, run_command: String, private_key_file: S
                                 drop(guard);
                             };
                             continue;
+                        } else if !oline.eq(&line) {
+                            let mut guard = logger_ptr_a.lock().await; {
+                                if guard.is_some() {
+                                    if guard.as_mut().unwrap().debug_info(&format!("Changed by middleware[message_out]: '{}' -> '{}'", oline, line)).is_err() {/* ignored */}
+                                }
+                                drop(guard);
+                            };
                         }
 
                         line.push_str("\n");
@@ -175,7 +182,7 @@ async fn start_ssh_driver(host: String, run_command: String, private_key_file: S
                             },
                         };
 
-                        if oline != "" && line == "" {
+                        if !oline.eq("") && line.eq("") {
                             let mut guard = logger_ptr_a.lock().await; {
                                 if guard.is_some() {
                                     if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_in]: {}", oline)).is_err() {/* ignored */}
@@ -183,6 +190,13 @@ async fn start_ssh_driver(host: String, run_command: String, private_key_file: S
                                 drop(guard);
                             };
                             continue;
+                        } else if !oline.eq(&line) {
+                            let mut guard = logger_ptr_a.lock().await; {
+                                if guard.is_some() {
+                                    if guard.as_mut().unwrap().debug_info(&format!("Changed by middleware[message_in]: '{}' -> '{}'", oline, line)).is_err() {/* ignored */}
+                                }
+                                drop(guard);
+                            };
                         }
 
                         let mut guard = logger_ptr_a.lock().await; {
@@ -225,7 +239,7 @@ async fn start_ssh_driver(host: String, run_command: String, private_key_file: S
                             },
                         };
 
-                        if oline != "" && line == "" {
+                        if !oline.eq("") && line.eq("") {
                             let mut guard = logger_ptr_a.lock().await; {
                                 if guard.is_some() {
                                     if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_in]: {}", oline)).is_err() {/* ignored */}
@@ -233,6 +247,13 @@ async fn start_ssh_driver(host: String, run_command: String, private_key_file: S
                                 drop(guard);
                             };
                             continue;
+                        } else if !oline.eq(&line) {
+                            let mut guard = logger_ptr_a.lock().await; {
+                                if guard.is_some() {
+                                    if guard.as_mut().unwrap().debug_info(&format!("Changed by middleware[message_in]: '{}' -> '{}'", oline, line)).is_err() {/* ignored */}
+                                }
+                                drop(guard);
+                            };
                         }
 
                         let mut guard = logger_ptr_a.lock().await; {

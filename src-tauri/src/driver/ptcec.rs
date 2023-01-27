@@ -110,7 +110,7 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
                 },
             };
 
-            if oline != "" && line == "" {
+            if !oline.eq("") && line.eq("") {
                 let mut guard = logger_ptr_a.lock().await; {
                     if guard.is_some() {
                         if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_out]: {}", oline)).is_err() {/* ignored */}
@@ -118,6 +118,13 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
                     drop(guard);
                 };
                 continue;
+            } else if !oline.eq(&line) {
+                let mut guard = logger_ptr_a.lock().await; {
+                    if guard.is_some() {
+                        if guard.as_mut().unwrap().debug_info(&format!("Changed by middleware[message_out]: '{}' -> '{}'", oline, line)).is_err() {/* ignored */}
+                    }
+                    drop(guard);
+                };
             }
 
             line.push_str("\n");
@@ -177,14 +184,21 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
                     },
                 };
 
-                if oline != "" && line == "" {
+                if !oline.eq("") && line.eq("") {
                     let mut guard = logger_ptr_c.lock().await; {
                         if guard.is_some() {
-                            if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_out]: {}", oline)).is_err() {/* ignored */}
+                            if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_in]: {}", oline)).is_err() {/* ignored */}
                         }
                         drop(guard);
                     };
                     continue;
+                } else if !oline.eq(&line) {
+                    let mut guard = logger_ptr_c.lock().await; {
+                        if guard.is_some() {
+                            if guard.as_mut().unwrap().debug_info(&format!("Changed by middleware[message_in]: '{}' -> '{}'", oline, line)).is_err() {/* ignored */}
+                        }
+                        drop(guard);
+                    };
                 }
 
                 let mut guard = logger_ptr_c.lock().await;
