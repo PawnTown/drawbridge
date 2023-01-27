@@ -13,6 +13,7 @@ mod driver;
 mod storage;
 mod settings;
 mod logger;
+mod middleware;
 use std::{env, time::SystemTime};
 
 #[tauri::command]
@@ -144,10 +145,11 @@ fn get_logger() -> Option<logger::Logger> {
 async fn start_bridge(args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
     let driver = driver::get_driver(args[1].clone());
     let logger: Option<logger::Logger> = get_logger();
+    let middleware = middleware::Middleware::new("".into());
 
     if driver.is_some() {
         // Todo: add logger initialization
-        return driver.unwrap().run(args, logger).await;
+        return driver.unwrap().run(args, logger, middleware).await;
     }
 
     println!("Invalid driver name. Please use ptcec or ssh.");

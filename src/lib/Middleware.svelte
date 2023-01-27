@@ -19,7 +19,7 @@ function message_out(line)
   --[[
   filterPrefix = "setoption name Hash"
   if string.sub(line, 1, string.len(filterPrefix))==filterPrefix then
-    return nil
+    return ""
   end
   --]]
   return line;

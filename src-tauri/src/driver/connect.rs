@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use serde_json::Value;
 
-use crate::{storage, logger};
+use crate::{storage, logger, middleware::Middleware};
 
 use super::{Driver, ptcec, ssh};
 
@@ -9,7 +9,7 @@ pub struct ConnectDriver {}
 
 #[async_trait]
 impl Driver for ConnectDriver {
-    async fn run(&self, args: Vec<String>, logger: Option<logger::Logger>) -> Result<(), Box<dyn std::error::Error>> {
+    async fn run(&self, args: Vec<String>, logger: Option<logger::Logger>, _: Middleware) -> Result<(), Box<dyn std::error::Error>> {
         if args.len() != 3 {
             println!("Invalid number of arguments. Please use: drawbridge connect <remote-id>");
             std::process::exit(1);
@@ -29,6 +29,8 @@ impl Driver for ConnectDriver {
         match remote {
             Some(r) => {
                 let driver_name = r["driver"].as_str().unwrap();
+
+                let middleware = Middleware::new(r["middlewareLua"].as_str().unwrap().to_string());
                 
                 if driver_name.eq("ptcec") {
                     // alias for: drawbridge ptcec <url> <engine> <mode> <token>
@@ -40,7 +42,7 @@ impl Driver for ConnectDriver {
                         r["engine"].as_str().unwrap().to_string(),
                         r["mode"].as_str().unwrap().to_string(),
                         r["token"].as_str().unwrap().to_string(),
-                    ], logger).await;
+                    ], logger, middleware).await;
                 }
             
                 if driver_name.eq("ssh") {
@@ -52,7 +54,7 @@ impl Driver for ConnectDriver {
                         r["url"].as_str().unwrap().to_string(),
                         r["runCommand"].as_str().unwrap().to_string(),
                         r["privateKeyFile"].as_str().unwrap().to_string(),
-                    ], logger).await;
+                    ], logger, middleware).await;
                 }
 
                 println!("Driver {} not found.", driver_name);
