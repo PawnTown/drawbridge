@@ -111,6 +111,12 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
             };
 
             if oline != "" && line == "" {
+                let mut guard = logger_ptr_a.lock().await; {
+                    if guard.is_some() {
+                        if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_out]: {}", oline)).is_err() {/* ignored */}
+                    }
+                    drop(guard);
+                };
                 continue;
             }
 
@@ -172,6 +178,12 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
                 };
 
                 if oline != "" && line == "" {
+                    let mut guard = logger_ptr_c.lock().await; {
+                        if guard.is_some() {
+                            if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_out]: {}", oline)).is_err() {/* ignored */}
+                        }
+                        drop(guard);
+                    };
                     continue;
                 }
 
