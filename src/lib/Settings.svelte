@@ -263,6 +263,7 @@
   }
 
   .input-wrap.file input {
+    height: 38px;
     padding-right: 60px;
   }
 
@@ -271,7 +272,7 @@
     right: 3px;
     bottom: 3px;
     width: 54px;
-    height: 34px;
+    height: 32px;
     border-radius: 9px;
     border: none;
     font-size: 18px;
