@@ -1,7 +1,7 @@
 {
   "name": "drawbridge",
   "private": true,
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -14,6 +14,7 @@
   "dependencies": {
     "@tauri-apps/api": "^1.2.0",
     "@types/uuid": "^9.0.0",
+    "monaco-editor": "0.34.1",
     "svelte-tauri-filedrop": "^1.0.0",
     "uuid": "^9.0.0"
   },

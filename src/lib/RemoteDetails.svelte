@@ -14,6 +14,10 @@
 
   const dispatch = createEventDispatcher();
 
+  const onMiddlewareEdit = () => {
+      dispatch("editMiddleware");
+  };
+
   const onEdit = () => {
       dispatch("edit");
   };
@@ -139,6 +143,10 @@
         <button on:click={onEdit}>
           <div class="icon edit"></div>
           Edit Details
+        </button>
+        <button class="small" on:click={onMiddlewareEdit}>
+          <div class="icon middleware"></div>
+          Edit Middleware
         </button>
       </div>
       <button class="delete" on:click={() => deleteUIVisible = true}>Delete</button>
@@ -281,7 +289,40 @@
     background-color: #9f2121;
   }
 
+  .inner-wrap .actions button.small {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    font-size: 11px;
+  }
+
+  .inner-wrap .actions button.small:hover {
+    background-color: #252626;
+  }
+
+  .inner-wrap .actions button.small:active {
+    background-color: #212324;
+  }
+
+  .inner-wrap .actions button.small {
+    background-color: transparent;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    padding: 7px 12px;
+    width: 100%;
+  }
+
+  .inner-wrap .actions button.small .icon {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+  }
+
   .inner-wrap .actions button .icon {
+    display: block;
     width: 32px;
     height: 32px;
     background-size: contain;
@@ -297,6 +338,11 @@
 
   .inner-wrap .actions button .icon.edit {
     background-image: url('/edit.svg');
+    filter: invert(1);
+  }
+
+  .inner-wrap .actions button .icon.middleware {
+    background-image: url('/middleware.svg');
     filter: invert(1);
   }
 

@@ -5,9 +5,9 @@
   import { v4 as uuidv4 } from 'uuid';
 
   import DriverSwitch from './DriverSwitch.svelte';
-  import type { Remote } from '../models/remote';
-    import FileDrop from './FileDrop.svelte';
-  
+  import { saveRemote, type Remote } from '../models/remote';
+  import FileDrop from './FileDrop.svelte';
+
   export let remote: Remote = {
     driver: "ptcec",
     label: "",
@@ -17,6 +17,7 @@
     mode: "",
     token: "",
     privateKeyFile: "",
+    middlewareLua: "",
   };
   
   const store = GetStore();
@@ -32,39 +33,12 @@
     animateTabs = true;
   });
 
-  const savePTCECRemote = async () => {
-    const remotes: Remote[] | null = await store.get('remotes');
-    const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
-    const newRemote = {
-      id: remote.id ?? uuidv4(),
-      driver: "ptcec",
-      label: remote.label,
-      url: remote.url,
-      engine: remote.engine,
-      mode: remote.mode,
-      token: remote.token,
-    };
-    const newRemotes = [...filteredRemotes, newRemote];
+  const save = async () => {
+    const remotes: Remote[] = await store.get('remotes') ?? [];
+    const newRemotes = saveRemote(remotes, remote);
     await store.set("remotes", newRemotes);
     animateTabs = false;
-    dispatch("success", { remote: newRemote });
-  };
-
-  const saveSSHRemote = async () => {
-    const remotes: Remote[] | null = await store.get('remotes');
-    const filteredRemotes = (remotes ?? []).filter((r: Remote) => !remote.id || r.id !== remote.id);
-    const newRemote = {
-      id: remote.id ?? uuidv4(),
-      driver: "ssh",
-      label: remote.label,
-      url: remote.url,
-      runCommand: remote.runCommand,
-      privateKeyFile: remote.privateKeyFile,
-    };
-    const newRemotes = [...filteredRemotes, newRemote];
-    await store.set("remotes", newRemotes);
-    animateTabs = false;
-    dispatch("success", { remote: newRemote });
+    dispatch("success", { remote: newRemotes[newRemotes.length - 1] });
   };
 </script>
 
@@ -105,7 +79,7 @@
         <span>Token</span>
         <input type="text" autocorrect="off" autocapitalize="none" placeholder="ABC123" bind:value={remote.token} />
       </div>
-      <button class="submit" on:click={savePTCECRemote}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
+      <button class="submit" on:click={save}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
     </div>
   {/if}
 
@@ -132,7 +106,7 @@
         <input type="text" autocorrect="off" autocapitalize="none" placeholder="mpi stockfish" bind:value={remote.runCommand} />
       </div>
       
-      <button class="submit" on:click={saveSSHRemote}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
+      <button class="submit" on:click={save}>{ remote.id === "" ? "Add Remote" : "Save Remote" }</button>
     </div>
   {/if}
 </div>

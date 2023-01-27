@@ -9,11 +9,13 @@
   import RemoteDetails from "$lib/RemoteDetails.svelte";
   import SettingsToggle from "$lib/SettingsToggle.svelte";
   import Settings from "$lib/Settings.svelte";
+  import Middleware from "$lib/Middleware.svelte";
 
   const store = GetStore();
   let remotes: Remote[] = [];
   let visibleDetailsItem: Remote | null = null;
   let remoteToEdit: Remote | null = null;
+  let remoteToEditMiddleware: Remote | null = null;
   let settingsVisible: boolean = false;
 
   let settings: SettingsModel = {
@@ -62,8 +64,17 @@
   <RemoteDetails
     remote={visibleDetailsItem}
     on:close={() => visibleDetailsItem = null}
+    on:editMiddleware={() => {remoteToEditMiddleware = visibleDetailsItem; visibleDetailsItem = null;}}
     on:edit={() => {remoteToEdit = visibleDetailsItem; visibleDetailsItem = null;}}
     on:delete={() => {visibleDetailsItem = null; reloadRemotes();}}
+  />
+{/if}
+
+{#if remoteToEditMiddleware}
+  <Middleware
+    remote={remoteToEditMiddleware}
+    on:close={() => remoteToEditMiddleware = null}
+    on:success={(item) => {remoteToEditMiddleware = null; visibleDetailsItem = item.detail.remote; reloadRemotes();}}
   />
 {/if}
 

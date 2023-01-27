@@ -17,6 +17,7 @@ pub mod proto {
 }
 
 use crate::logger;
+use crate::middleware::Middleware;
 
 use super::Driver;
 
@@ -24,16 +25,16 @@ pub struct PtcecDriver {}
 
 #[async_trait]
 impl Driver for PtcecDriver {
-    async fn run(&self, args: Vec<String>, logger: Option<logger::Logger>) -> Result<(), Box<dyn std::error::Error>> {
+    async fn run(&self, args: Vec<String>, logger: Option<logger::Logger>, middleware: Middleware) -> Result<(), Box<dyn std::error::Error>> {
         if args.len() != 6 {
             println!("Invalid number of arguments. Please use: drawbridge ptcec <url> <engine> <mode> <token>");
             std::process::exit(1);
         }
-        return ptcec_run(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone(), gen_session_id(), logger).await;
+        return ptcec_run(args[2].clone(), args[3].clone(), args[4].clone(), args[5].clone(), gen_session_id(), logger, middleware).await;
     }
 }
 
-async fn ptcec_run(url: String, engine: String, mode: String, token: String, session_id: String, logger: Option<logger::Logger>) -> Result<(), Box<dyn std::error::Error>> {
+async fn ptcec_run(url: String, engine: String, mode: String, token: String, session_id: String, logger: Option<logger::Logger>, middleware: Middleware) -> Result<(), Box<dyn std::error::Error>> {
     let channel = Channel::from_shared(url).unwrap().connect().await?;
     let mut auth_header = "Basic ".to_owned();
     auth_header.push_str(&token);
@@ -68,7 +69,10 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
     };
     tx.send(init_req).await.unwrap();
 
+    let middleware_ptr = Arc::new(middleware);
     
+
+    let middleware_ptr_a = Arc::clone(&middleware_ptr);
     let logger_ptr_b = Arc::clone(&logger_o_ptr);
     tokio::spawn(async move {
         let stdin = stdin();
@@ -87,6 +91,43 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
                 },
                 _ => (),
             }
+
+            line = line.replace("\n", "");
+            let oline = line.clone();
+
+            match middleware_ptr_a.handle_out(oline.clone()) {
+                Ok(new_line) => {
+                    line = new_line;
+                },
+                Err(e) => {
+                    let mut guard = logger_ptr_a.lock().await; {
+                        if guard.is_some() {
+                            if guard.as_mut().unwrap().debug_error(&format!("Failed to apply outgoing middleware: {}", e)).is_err() {/* ignored */}
+                        }
+                        drop(guard);
+                    };
+                    continue;
+                },
+            };
+
+            if !oline.eq("") && line.eq("") {
+                let mut guard = logger_ptr_a.lock().await; {
+                    if guard.is_some() {
+                        if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_out]: {}", oline)).is_err() {/* ignored */}
+                    }
+                    drop(guard);
+                };
+                continue;
+            } else if !oline.eq(&line) {
+                let mut guard = logger_ptr_a.lock().await; {
+                    if guard.is_some() {
+                        if guard.as_mut().unwrap().debug_info(&format!("Changed by middleware[message_out]: '{}' -> '{}'", oline, line)).is_err() {/* ignored */}
+                    }
+                    drop(guard);
+                };
+            }
+
+            line.push_str("\n");
 
             let mut guard = logger_ptr_a.lock().await; {
                 if guard.is_some() {
@@ -121,17 +162,51 @@ async fn ptcec_run(url: String, engine: String, mode: String, token: String, ses
         .await
         .unwrap()
         .into_inner();
-        
+    
+    let middleware_ptr_b = Arc::clone(&middleware_ptr);
     let logger_ptr_c = Arc::clone(&logger_o_ptr);
     while let Some(item) = stream.next().await {
         match str::from_utf8(item.unwrap().stdout.as_ref()) {
-            Ok(v) => {
+            Ok(oline) => {
+                let mut line = oline.clone().to_string();
+                match middleware_ptr_b.handle_in(line) {
+                    Ok(new_line) => {
+                        line = new_line;
+                    },
+                    Err(e) => {
+                        let mut guard = logger_ptr_c.lock().await; {
+                            if guard.is_some() {
+                                if guard.as_mut().unwrap().debug_error(&format!("Failed to apply incomming middleware: {}", e)).is_err() {/* ignored */}
+                            }
+                            drop(guard);
+                        };
+                        continue;
+                    },
+                };
+
+                if !oline.eq("") && line.eq("") {
+                    let mut guard = logger_ptr_c.lock().await; {
+                        if guard.is_some() {
+                            if guard.as_mut().unwrap().debug_info(&format!("Filtered out by middleware[message_in]: {}", oline)).is_err() {/* ignored */}
+                        }
+                        drop(guard);
+                    };
+                    continue;
+                } else if !oline.eq(&line) {
+                    let mut guard = logger_ptr_c.lock().await; {
+                        if guard.is_some() {
+                            if guard.as_mut().unwrap().debug_info(&format!("Changed by middleware[message_in]: '{}' -> '{}'", oline, line)).is_err() {/* ignored */}
+                        }
+                        drop(guard);
+                    };
+                }
+
                 let mut guard = logger_ptr_c.lock().await;
                 if guard.is_some() {
-                    if guard.as_mut().unwrap().debug_incomming(&v.clone()).is_err() {/* ignored */}
+                    if guard.as_mut().unwrap().debug_incomming(&line.clone()).is_err() {/* ignored */}
                 }
                 drop(guard);
-                println!("{}", v)
+                println!("{}", line)
             },
             Err(e) => {
                 let mut guard = logger_ptr_c.lock().await; {
